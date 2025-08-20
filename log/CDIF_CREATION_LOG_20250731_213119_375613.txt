@@ -1,0 +1,7 @@
+2025-07-31 21:31:19,375 - INFO - 2025-07-31 21:31:19.375613 |  ********** CDIF CREATION TASK STARTED ********** 
+2025-07-31 21:31:19,377 - INFO - 2025-07-31 21:31:19.377633 | Creating folder | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\
+2025-07-31 21:31:19,377 - INFO - 2025-07-31 21:31:19.377633 | Creating field mapping file | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\pole.fields
+2025-07-31 21:31:19,381 - INFO - 2025-07-31 21:31:19.381304 | Creating field mapping file completed for | pole
+2025-07-31 21:31:19,381 - INFO - 2025-07-31 21:31:19.381304 |  creating CSV for manhole in | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\\pole.csv
+2025-07-31 21:34:38,866 - ERROR - 2025-07-31 21:34:38.864989 | Error occured in  CSV  file :  [Errno 13] Permission denied: 'C:\\SaskTel_Bisen\\Development\\Data_Migration\\output\\structures\\\\pole.csv'| C:\SaskTel_Bisen\Development\Data_Migration\output\structures\\pole.csv
+2025-07-31 21:34:39,947 - INFO - 2025-07-31 21:34:39.947047 |  ********** CDIF CREATION TASK FINISHED ********** 

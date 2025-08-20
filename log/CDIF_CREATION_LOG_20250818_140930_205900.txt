@@ -1,0 +1,10 @@
+2025-08-18 14:09:30,207 - INFO - 2025-08-18 14:09:30.207921 |  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-18 14:09:30,207 - INFO - Creating folder for CDIF | 'C:\SaskTel_Bisen\Development\Data_Migration\output\route'
+2025-08-18 14:09:30,207 - INFO - Creating Package metadata file | 'C:\SaskTel_Bisen\Development\Data_Migration\output\\package.metadata'
+2025-08-18 14:09:30,209 - INFO - Package metadata written sucessfully.'C:\SaskTel_Bisen\Development\Data_Migration\output\\package.metadata'
+2025-08-18 14:09:30,211 - INFO - Creating field mapping file  'C:\SaskTel_Bisen\Development\Data_Migration\output\route\sasktel_tower.fields' for object sasktel_tower 
+2025-08-18 14:09:30,211 - INFO - Loading configuration JSON file  'C:\SaskTel_Bisen\Development\Data_Migration\config\sasktel_tower.json' 
+2025-08-18 14:09:30,212 - INFO - Creating field mapping file completed for 'sasktel_tower'
+2025-08-18 14:11:52,629 - INFO - Finalizing CDIF by compressing and putting all files in a zip file.
+2025-08-18 14:11:52,884 - INFO -  completed with  - 283 records | C:\SaskTel_Bisen\Development\Data_Migration\output\\SASKTEL_TOWER_cdif20250818_141152.zip
+2025-08-18 14:11:53,075 - INFO - 2025-08-18 14:11:53.074332 |  ********** CDIF CREATION TASK FINISHED ********** 

@@ -1,0 +1,7 @@
+2025-08-05 19:10:26,748 - INFO - 2025-08-05 19:10:26.748154 |  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-05 19:10:26,750 - INFO - 2025-08-05 19:10:26.750210 | Creating folder | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\
+2025-08-05 19:10:26,751 - INFO - 2025-08-05 19:10:26.751390 | Creating field mapping file | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\vault.fields
+2025-08-05 19:10:26,754 - INFO - 2025-08-05 19:10:26.753739 | Creating field mapping file completed for | vault
+2025-08-05 19:10:26,754 - INFO - 2025-08-05 19:10:26.754761 |  creating CSV for manhole in | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\\vault.csv
+2025-08-05 19:12:34,406 - ERROR - 2025-08-05 19:12:34.406186 | Error occured in  CSV  file :  'float' object has no attribute 'strftime'| C:\SaskTel_Bisen\Development\Data_Migration\output\structures\\vault.csv
+2025-08-05 19:12:35,102 - INFO - 2025-08-05 19:12:35.102679 |  ********** CDIF CREATION TASK FINISHED ********** 

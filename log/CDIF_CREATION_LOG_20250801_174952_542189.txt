@@ -1,0 +1,7 @@
+2025-08-01 17:49:52,542 - INFO - 2025-08-01 17:49:52.542189 |  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-01 17:49:52,544 - INFO - 2025-08-01 17:49:52.544210 | Creating folder | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\
+2025-08-01 17:49:52,544 - INFO - 2025-08-01 17:49:52.544210 | Creating field mapping file | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\vault.fields
+2025-08-01 17:49:52,546 - INFO - 2025-08-01 17:49:52.546229 | Creating field mapping file completed for | vault
+2025-08-01 17:49:52,551 - INFO - 2025-08-01 17:49:52.551355 |  creating CSV for manhole in | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\\vault.csv
+2025-08-01 17:51:11,544 - ERROR - 2025-08-01 17:51:11.544135 | Error occured in  CSV  file :  cannot access local variable 'gdf' where it is not associated with a value| C:\SaskTel_Bisen\Development\Data_Migration\output\structures\\vault.csv
+2025-08-01 17:51:12,285 - INFO - 2025-08-01 17:51:12.285214 |  ********** CDIF CREATION TASK FINISHED ********** 

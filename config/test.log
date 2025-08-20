@@ -1,0 +1,46 @@
+2025-08-14 11:36:50,904 - INFO -  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-14 11:37:23,279 - INFO -  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-14 11:37:29,453 - INFO - reachied at init in Summary
+2025-08-14 11:37:32,133 - INFO - Completed
+2025-08-14 15:01:33,370 - INFO -  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-14 15:01:36,040 - INFO - Creating folder for CDIF | 'C:\SaskTel_Bisen\Development\Data_Migration\output\cdiftest'
+2025-08-14 15:01:36,041 - INFO - Creating Package metadata file | 'C:\SaskTel_Bisen\Development\Data_Migration\output\package.metadata'
+2025-08-14 15:01:36,044 - INFO - Package metadata written sucessfully.
+2025-08-14 15:01:37,024 - INFO - Creating field mapping file  'C:\SaskTel_Bisen\Development\Data_Migration\output\cdiftest\abc.fields' for object 'abc'
+2025-08-14 15:01:37,026 - ERROR - Error occured in create field mapping file 'C:\SaskTel_Bisen\Development\Data_Migration\output\cdiftest\abc.fields'. Error is ''str' object has no attribute 'get''  
+2025-08-14 15:07:11,768 - INFO -  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-14 15:07:15,166 - INFO - Creating folder for CDIF | 'C:\SaskTel_Bisen\Development\Data_Migration\output\cdiftest'
+2025-08-14 15:07:15,168 - INFO - Creating Package metadata file | 'C:\SaskTel_Bisen\Development\Data_Migration\output\package.metadata'
+2025-08-14 15:07:15,170 - INFO - Package metadata written sucessfully.'C:\SaskTel_Bisen\Development\Data_Migration\output\package.metadata'
+2025-08-14 15:07:16,312 - INFO - Creating field mapping file  'C:\SaskTel_Bisen\Development\Data_Migration\output\cdiftest\abc.fields' for object 'abc'
+2025-08-14 15:08:30,082 - INFO -  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-14 15:08:30,935 - INFO - Creating folder for CDIF | 'C:\SaskTel_Bisen\Development\Data_Migration\output\cdiftest'
+2025-08-14 15:08:30,937 - INFO - Creating Package metadata file | 'C:\SaskTel_Bisen\Development\Data_Migration\output\package.metadata'
+2025-08-14 15:08:30,939 - INFO - Package metadata written sucessfully.'C:\SaskTel_Bisen\Development\Data_Migration\output\package.metadata'
+2025-08-14 15:08:31,791 - INFO - Creating field mapping file  'C:\SaskTel_Bisen\Development\Data_Migration\output\cdiftest\abc.fields' for object 'abc'
+2025-08-14 15:12:42,562 - INFO -  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-14 15:12:42,564 - INFO - Creating folder for CDIF | 'C:\SaskTel_Bisen\Development\Data_Migration\output\cdiftest'
+2025-08-14 15:12:42,564 - INFO - Creating Package metadata file | 'C:\SaskTel_Bisen\Development\Data_Migration\output\package.metadata'
+2025-08-14 15:12:42,567 - INFO - Package metadata written sucessfully.'C:\SaskTel_Bisen\Development\Data_Migration\output\package.metadata'
+2025-08-14 15:12:44,697 - INFO - Creating field mapping file  'C:\SaskTel_Bisen\Development\Data_Migration\output\cdiftest\abc.fields' for object abc 
+2025-08-14 15:12:44,700 - INFO - Loading configuration JSON file  'C:\SaskTel_Bisen\Development\Data_Migration\config\building.json' 
+2025-08-14 15:12:57,987 - INFO - Creating field mapping file completed for 'abc'
+2025-08-14 15:12:59,952 - INFO - Completed
+2025-08-16 14:49:53,890 - INFO -  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-16 14:51:55,064 - INFO -  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-16 14:52:17,380 - INFO -  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-16 15:03:22,098 - INFO -  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-16 15:04:17,515 - INFO -  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-16 15:09:21,832 - INFO -  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-16 15:10:11,226 - INFO - Completed
+2025-08-16 15:20:54,709 - INFO -  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-16 15:21:33,669 - INFO -  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-16 15:25:29,970 - INFO -  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-16 15:31:01,640 - INFO -  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-16 15:36:45,757 - INFO -  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-16 15:37:58,940 - INFO -  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-16 15:39:22,419 - INFO -  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-16 15:46:33,355 - INFO -  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-16 15:55:36,621 - INFO -  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-16 15:56:30,990 - INFO -  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-16 16:01:12,402 - INFO -  ********** CDIF CREATION TASK STARTED ********** 

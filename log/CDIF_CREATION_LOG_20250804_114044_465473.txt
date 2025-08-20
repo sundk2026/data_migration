@@ -1,0 +1,5 @@
+2025-08-04 11:40:44,465 - INFO - 2025-08-04 11:40:44.465473 |  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-04 11:40:44,483 - INFO - 2025-08-04 11:40:44.483854 | Creating folder | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\
+2025-08-04 11:40:44,484 - INFO - 2025-08-04 11:40:44.484880 | Creating field mapping file | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\vault.fields
+2025-08-04 11:40:44,486 - INFO - 2025-08-04 11:40:44.486934 | Creating field mapping file completed for | vault
+2025-08-04 11:40:44,486 - INFO - 2025-08-04 11:40:44.486934 |  creating CSV for manhole in | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\\vault.csv

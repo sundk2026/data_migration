@@ -1,0 +1,9 @@
+2025-08-03 16:34:29,068 - INFO - 2025-08-03 16:34:29.068379 |  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-03 16:34:29,068 - INFO - 2025-08-03 16:34:29.068379 | Creating design metadatafile | C:\Users\PS001094296\Documents\route-csv\output\package.metadata
+2025-08-03 16:34:29,501 - INFO - starting Route CSV creation:
+2025-08-03 16:34:29,502 - INFO - 2025-08-03 16:34:29.502170 | Creating folder | C:\Users\PS001094296\Documents\route-csv\output\routes\
+2025-08-03 16:34:29,516 - INFO - 2025-08-03 16:34:29.516758 | Creating field mapping file | C:\Users\PS001094296\Documents\route-csv\output\routes\ug_route.fields
+2025-08-03 16:34:29,522 - INFO - 2025-08-03 16:34:29.522525 | Creating field mapping file completed for | ug_route
+2025-08-03 16:34:29,522 - INFO - 2025-08-03 16:34:29.522525 |  creating CSV for route in | C:\Users\PS001094296\Documents\route-csv\output\routes\\ug_route.csv
+2025-08-03 16:34:30,822 - INFO - 2025-08-03 16:34:30.822179 |  CSV completed with  - 583 records | C:\Users\PS001094296\Documents\route-csv\output\routes\\ug_route.csv
+2025-08-03 16:34:30,829 - INFO - 2025-08-03 16:34:30.829847 |  ********** CDIF CREATION TASK FINISHED ********** 

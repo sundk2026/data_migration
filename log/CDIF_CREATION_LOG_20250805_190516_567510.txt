@@ -1,0 +1,7 @@
+2025-08-05 19:05:16,569 - INFO - 2025-08-05 19:05:16.567510 |  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-05 19:05:16,570 - INFO - 2025-08-05 19:05:16.570560 | Creating folder | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\
+2025-08-05 19:05:16,570 - INFO - 2025-08-05 19:05:16.570560 | Creating field mapping file | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\vault.fields
+2025-08-05 19:05:16,573 - INFO - 2025-08-05 19:05:16.573953 | Creating field mapping file completed for | vault
+2025-08-05 19:05:16,573 - INFO - 2025-08-05 19:05:16.573953 |  creating CSV for manhole in | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\\vault.csv
+2025-08-05 19:10:15,568 - ERROR - 2025-08-05 19:10:15.568055 | Error occured in  CSV  file :  initial_value must be str or None, not list| C:\SaskTel_Bisen\Development\Data_Migration\output\structures\\vault.csv
+2025-08-05 19:10:15,569 - INFO - 2025-08-05 19:10:15.569081 |  ********** CDIF CREATION TASK FINISHED ********** 

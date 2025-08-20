@@ -1,0 +1,21 @@
+name,type,unit
+id,id,
+location,point,
+name,string(25)
+specification,Foreign Key
+type_name,string(20)
+inventory_status_code,string(4)
+work_order_name,string(20)
+account_code,string(30)
+clli_code,string(11)
+st_clli_cd,string(20)
+st_co_id,string(30)
+st_ownr_co_nm,string(50)
+st_vntge_yr,integer
+st_rmks,string(2000)
+st_sap_actvy_cd,string(5)
+st_sap_ntwk_id,bigint
+average_floor_height,"numeric(20,8)"
+starting_floor,bigint
+ending_floor,bigint
+ground_floor_number,bigint

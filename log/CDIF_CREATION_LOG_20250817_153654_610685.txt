@@ -1,0 +1,10 @@
+2025-08-17 15:36:54,610 - INFO - 2025-08-17 15:36:54.610685 |  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-17 15:36:54,610 - INFO - Creating folder for CDIF | 'C:\SaskTel_Bisen\Development\Data_Migration\output\structure'
+2025-08-17 15:36:54,610 - INFO - Creating Package metadata file | 'C:\SaskTel_Bisen\Development\Data_Migration\output\\package.metadata'
+2025-08-17 15:36:54,613 - INFO - Package metadata written sucessfully.'C:\SaskTel_Bisen\Development\Data_Migration\output\\package.metadata'
+2025-08-17 15:36:54,629 - INFO - Creating field mapping file  'C:\SaskTel_Bisen\Development\Data_Migration\output\structure\pole.fields' for object pole 
+2025-08-17 15:36:54,629 - INFO - Loading configuration JSON file  'C:\SaskTel_Bisen\Development\Data_Migration\config\pole.json' 
+2025-08-17 15:36:54,631 - INFO - Creating field mapping file completed for 'pole'
+2025-08-17 15:36:56,721 - INFO - Finalizing CDIF by compressing and putting all files in a zip file.
+2025-08-17 15:36:57,029 - INFO -  completed with  - 1617 records | C:\SaskTel_Bisen\Development\Data_Migration\output\\POLE_cdif20250817_153656.zip
+2025-08-17 15:36:57,031 - INFO - 2025-08-17 15:36:57.031541 |  ********** CDIF CREATION TASK FINISHED ********** 

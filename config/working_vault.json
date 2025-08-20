@@ -1,0 +1,395 @@
+{
+    "Name": "vault",
+    "Geometry_Type": "point",
+    "Display_Name": "Vault",
+    "Title": "Valut: [Structure Name]",
+    "Short_Description": "",
+    "Track_Changes": "yes",
+    "Versioned": "Yes",
+    "Editable": "Yes",
+    "NE_Table": "STRUCTURE_REG16",
+    "Geometry": "shape",
+    "Source_ID": "object_id",
+    "UUID": "uuid",
+    "Filter": "(CATEGORY_NAME = 'CLOSURE' and TYPE_NAME IN ='PULLBOX') or CATEGORY_NAME = 'VAULT' OR CATEGORY_NAME = 'FTTX'",
+    "Attribute_Finalised": [
+        {
+            "Name": "id",
+            "Display": "Id",
+            "Type": "Unique ID",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "IQGeo",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "location",
+            "Display": "Location",
+            "Type": "Geometry",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "IQGeo",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "specification",
+            "Display": "Specification",
+            "Type": "Foreign Key",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "IQGeo",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "equipment",
+            "Display": "Equipments",
+            "Type": "Reference Set",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "IQGeo",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "routes",
+            "Display": "Routes",
+            "Type": "Reference Set",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "IQGeo",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "in_fiber_segments",
+            "Display": "In Fiber Segments",
+            "Type": "Reference Set",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "IQGeo",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "out_fiber_segments",
+            "Display": "Out Fiber Segments",
+            "Type": "Reference Set",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "IQGeo",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "cables",
+            "Display": "Cables",
+            "Type": "Reference Set",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "IQGeo",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "splices",
+            "Display": "Fiber Splices",
+            "Type": "Reference Set",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "IQGeo",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "attachments",
+            "Display": "Attachments",
+            "Type": "Reference Set",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "IQGeo",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "structure_name",
+            "Display": "Structure Name",
+            "Type": "",
+            "Field_Type": "string(25)",
+            "Field_Length": "25",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "type_name",
+            "Display": "Type Name",
+            "Type": "",
+            "Field_Type": "string(20)",
+            "Field_Length": "20",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "location_code",
+            "Display": "Location Code",
+            "Type": "",
+            "Field_Type": "string(20)",
+            "Field_Length": "20",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "inventory_status_code",
+            "Display": "Inventory Status Code",
+            "Type": "",
+            "Field_Type": "string(4)",
+            "Field_Length": "4",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "work_order_name",
+            "Display": "Work Order Name",
+            "Type": "",
+            "Field_Type": "string(20)",
+            "Field_Length": "20",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "work_order_item_number",
+            "Display": "Work Order Item Number",
+            "Type": "",
+            "Field_Type": "bigint",
+            "Field_Length": "",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "structure_ref_name",
+            "Display": "Structure Ref Name",
+            "Type": "",
+            "Field_Type": "string(20)",
+            "Field_Length": "20",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "account_code",
+            "Display": "Account Code",
+            "Type": "",
+            "Field_Type": "string(30)",
+            "Field_Length": "30",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "clli_code",
+            "Display": "Clli Code",
+            "Type": "",
+            "Field_Type": "string(11)",
+            "Field_Length": "11",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "material_type",
+            "Display": "Material Type",
+            "Type": "",
+            "Field_Type": "string(10)",
+            "Field_Length": "10",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "st_uom_cd",
+            "Display": "Unit Of Measurement Code",
+            "Type": "",
+            "Field_Type": "string(20)",
+            "Field_Length": "20",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "st_clli_cd",
+            "Display": "Sasktel Clli Code",
+            "Type": "",
+            "Field_Type": "string(20)",
+            "Field_Length": "20",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "st_co_id",
+            "Display": "Managed Region Identifier",
+            "Type": "",
+            "Field_Type": "string(30)",
+            "Field_Length": "30",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "st_ownr_co_nm",
+            "Display": "Owner Company Name",
+            "Type": "",
+            "Field_Type": "string(50)",
+            "Field_Length": "50",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "st_vntge_yr",
+            "Display": "Vintage Year",
+            "Type": "",
+            "Field_Type": "Integer",
+            "Field_Length": "2",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "st_rmks",
+            "Display": "Sasktel Remarks",
+            "Type": "",
+            "Field_Type": "string(2000)",
+            "Field_Length": "2000",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "st_sap_stk_id",
+            "Display": "Sap Stock Identifier",
+            "Type": "",
+            "Field_Type": "string(10)",
+            "Field_Length": "10",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "st_vlt_id",
+            "Display": "Vault Identifier",
+            "Type": "",
+            "Field_Type": "string(10)",
+            "Field_Length": "10",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "st_bond_to_neut_cd",
+            "Display": "Bond To Neutral Code",
+            "Type": "",
+            "Field_Type": "string(2)",
+            "Field_Length": "2",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "st_trmnl_id",
+            "Display": "Terminal Identifier",
+            "Type": "",
+            "Field_Type": "string(20)",
+            "Field_Length": "20",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "st_mh_cnfg_cd",
+            "Display": "Manhole Configuration Code",
+            "Type": "",
+            "Field_Type": "string(20)",
+            "Field_Length": "20",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "st_pc_qty",
+            "Display": "Preferred Count Quantity",
+            "Type": "",
+            "Field_Type": "string(50)",
+            "Field_Length": "50",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "st_sap_actvy_cd",
+            "Display": "Sap Activity Code",
+            "Type": "",
+            "Field_Type": "string(5)",
+            "Field_Length": "5",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "st_sap_ntwk_id",
+            "Display": "Sap Network Identifier",
+            "Type": "",
+            "Field_Type": "bigint",
+            "Field_Length": "4",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "st_mh_nk_lg_qty",
+            "Display": "Manhole Neck Length",
+            "Type": "",
+            "Field_Type": "numeric(29,8)",
+            "Field_Length": "8",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "st_mh_lid_dia_qty",
+            "Display": "Manhole Lid Diameter Quantity",
+            "Type": "",
+            "Field_Type": "numeric(29,8)",
+            "Field_Length": "8",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "st_envmt_cd",
+            "Display": "Sasktel Environment Code",
+            "Type": "",
+            "Field_Type": "String(6)",
+            "Field_Length": "6",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "st_confined_space_designation",
+            "Display": "St Confined Space Designation",
+            "Type": "",
+            "Field_Type": "String(50)",
+            "Field_Length": "50",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "Topic",
+            "Display": "Action to be taken",
+            "Type": "",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "Vault Type",
+            "Display": "Migrate type= FTTX to Pull Box",
+            "Type": "",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "Model Specifications",
+            "Display": "Don Extract and review models from Network Engineer, remove obsolete models and share in XML format , TechM to  to configure them in IQ Geo.",
+            "Type": "",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "Symbol Library",
+            "Display": "TechM to use same Symbol as in NE, convert all rectangle block to square",
+            "Type": "",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "",
+            "ReplaceValue": ""
+        }
+    ]
+}

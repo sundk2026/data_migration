@@ -1,0 +1,282 @@
+{
+    "Name": "ug_route",
+    "Geometry_Type": "path",
+    "Display_Name": "Route (Underground)",
+    "Title": "Route (Underground): [id] - [route_type]",
+    "Short_Description": "",
+    "Track_Changes": "yes",
+    "Versioned": "Yes",
+    "Editable": "Yes",
+    "NE_Table": "Span",
+    "Geometry": "shape",
+    "Source_ID": "SPAN_NAME",
+    "UUID": "uuid",
+    "Filter": "TYPE_NAME",
+    "Filter_Value": "BURIED,CONDUIT,TUNNEL,FORMATION,UNDERGROUND,FOREIGN BURIED,FOREIGN UG,UNDERWATER,COREHOLE",
+    "Attribute_Finalised": [
+        {
+            "Name": "id",
+            "Display": "Id",
+            "Type": "Unique ID",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "IQGeo"
+        },
+        {
+            "Name": "path",
+            "Display": "Path",
+            "Type": "Geometry",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "IQGeo"
+        },
+        {
+            "Name": "length",
+            "Display": "Length",
+            "Type": "Double",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "IQGeo"
+        },
+        {
+            "Name": "in_structure",
+            "Display": "Start Structure",
+            "Type": "Reference",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "IQGeo"
+        },
+        {
+            "Name": "out_structure",
+            "Display": "Out Structure",
+            "Type": "Reference",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "IQGeo"
+        },
+        {
+            "Name": "conduit",
+            "Display": "Conduit",
+            "Type": "Reference Set",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "IQGeo"
+        },
+        {
+            "Name": "cables",
+            "Display": "Cables",
+            "Type": "Reference Set",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "IQGeo"
+        },
+        {
+            "Name": "cable_segments",
+            "Display": "Cable Segments",
+            "Type": "Reference Set",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "IQGeo"
+        },
+        {
+            "Name": "geom_length",
+            "Display": "Calculated Length",
+            "Type": "",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "IQGeo"
+        },
+        {
+            "Name": "duct",
+            "Display": "Duct",
+            "Type": "",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "IQGeo"
+        },
+        {
+            "Name": "span_name",
+            "Display": "Span Name",
+            "Type": "",
+            "Field_Type": "String(25)",
+            "Field_Length": "25",
+            "FieldSource": "NE"
+        },
+        {
+            "Name": "type_name",
+            "Display": "Type Name",
+            "Type": "",
+            "Field_Type": "String(20)",
+            "Field_Length": "20",
+            "FieldSource": "NE"
+        },
+        {
+            "Name": "span_ref_name",
+            "Display": "Span Ref Name",
+            "Type": "",
+            "Field_Type": "String(20)",
+            "Field_Length": "20",
+            "FieldSource": "NE"
+        },
+        {
+            "Name": "to_structure_name",
+            "Display": "To Structure Name",
+            "Type": "",
+            "Field_Type": "String(25)",
+            "Field_Length": "25",
+            "FieldSource": "NE"
+        },
+        {
+            "Name": "from_structure_name",
+            "Display": "From Structure Name",
+            "Type": "",
+            "Field_Type": "String(25)",
+            "Field_Length": "25",
+            "FieldSource": "NE"
+        },
+        {
+            "Name": "inventory_status_code",
+            "Display": "Inventory Status Code",
+            "Type": "",
+            "Field_Type": "String(4)",
+            "Field_Length": "4",
+            "FieldSource": "NE"
+        },
+        {
+            "Name": "ownership_type_code",
+            "Display": "Ownership Type Code",
+            "Type": "",
+            "Field_Type": "String(10)",
+            "Field_Length": "10",
+            "FieldSource": "NE"
+        },
+        {
+            "Name": "work_order_name",
+            "Display": "Work Order Name",
+            "Type": "",
+            "Field_Type": "String(20)",
+            "Field_Length": "20",
+            "FieldSource": "NE"
+        },
+        {
+            "Name": "work_order_item_number",
+            "Display": "Work Order Item Number",
+            "Type": "",
+            "Field_Type": "bigint",
+            "Field_Length": "4",
+            "FieldSource": "NE"
+        },
+        {
+            "Name": "account_code",
+            "Display": "Account Code",
+            "Type": "",
+            "Field_Type": "String(30)",
+            "Field_Length": "30",
+            "FieldSource": "NE"
+        },
+        {
+            "Name": "placement_date",
+            "Display": "Placement Date",
+            "Type": "",
+            "Field_Type": "timestamp",
+            "Field_Length": "8",
+            "FieldSource": "NE"
+        },
+        {
+            "Name": "measured_length",
+            "Display": "Measured Length",
+            "Type": "",
+            "Field_Type": "numeric(29,8)",
+            "Field_Length": "8",
+            "FieldSource": "NE"
+        },
+        {
+            "Name": "st_ownr_co_nm",
+            "Display": "Owner Company Name",
+            "Type": "",
+            "Field_Type": "String(50)",
+            "Field_Length": "50",
+            "FieldSource": "NE"
+        },
+        {
+            "Name": "st_sap_stk_id",
+            "Display": "Sap Stock Identifier",
+            "Type": "",
+            "Field_Type": "String(10)",
+            "Field_Length": "10",
+            "FieldSource": "NE"
+        },
+        {
+            "Name": "st_eas_rmks",
+            "Display": "Easement Remarks",
+            "Type": "",
+            "Field_Type": "String(200)",
+            "Field_Length": "200",
+            "FieldSource": "NE"
+        },
+        {
+            "Name": "st_co_id",
+            "Display": "Managed Region Identifier",
+            "Type": "",
+            "Field_Type": "String(30)",
+            "Field_Length": "30",
+            "FieldSource": "NE"
+        },
+        {
+            "Name": "st_rmks",
+            "Display": "Sasktel Remarks",
+            "Type": "",
+            "Field_Type": "String(2000)",
+            "Field_Length": "2000",
+            "FieldSource": "NE"
+        },
+        {
+            "Name": "st_vntge_yr",
+            "Display": "Vintage Year",
+            "Type": "",
+            "Field_Type": "integer",
+            "Field_Length": "2",
+            "FieldSource": "NE"
+        },
+        {
+            "Name": "st_sap_actvy_cd",
+            "Display": "Sap Activity Code",
+            "Type": "",
+            "Field_Type": "String(5)",
+            "Field_Length": "5",
+            "FieldSource": "NE"
+        },
+        {
+            "Name": "st_sap_ntwk_id",
+            "Display": "Sap Network Identifier",
+            "Type": "",
+            "Field_Type": "bigint",
+            "Field_Length": "4",
+            "FieldSource": "NE"
+        },
+        {
+            "Name": "st_envmt_cd",
+            "Display": "Sasktel Environment Code",
+            "Type": "",
+            "Field_Type": "String(6)",
+            "Field_Length": "6",
+            "FieldSource": "NE"
+        },
+        {
+            "Name": "o2dn",
+            "Display": "Optius Distinguished Name",
+            "Type": "",
+            "Field_Type": "String(1024)",
+            "Field_Length": "1024",
+            "FieldSource": "O2"
+        },
+        {
+            "Name": "o2cm",
+            "Display": "Optius Common Name",
+            "Type": "",
+            "Field_Type": "String(255)",
+            "Field_Length": "255",
+            "FieldSource": "O2"
+        }
+    ]
+}

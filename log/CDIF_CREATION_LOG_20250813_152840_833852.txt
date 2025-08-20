@@ -1,0 +1,7 @@
+2025-08-13 15:28:40,835 - INFO - 2025-08-13 15:28:40.835873 |  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-13 15:28:40,852 - INFO - 2025-08-13 15:28:40.852023 | Creating folder | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\
+2025-08-13 15:28:40,853 - INFO - 2025-08-13 15:28:40.853053 | Creating field mapping file | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\building.fields
+2025-08-13 15:28:40,856 - INFO - 2025-08-13 15:28:40.856088 | Creating field mapping file completed for | building
+2025-08-13 15:28:40,856 - INFO - 2025-08-13 15:28:40.856088 |  creating CSV for manhole in | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\\building.csv
+2025-08-13 15:32:05,380 - ERROR - 2025-08-13 15:32:05.380068 | Error occured in  CSV  file :  'WDM.WORK_ORDER'| C:\SaskTel_Bisen\Development\Data_Migration\output\structures\\building.csv
+2025-08-13 15:32:06,271 - INFO - 2025-08-13 15:32:06.271518 |  ********** CDIF CREATION TASK FINISHED ********** 

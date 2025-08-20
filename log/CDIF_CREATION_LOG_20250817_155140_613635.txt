@@ -1,0 +1,10 @@
+2025-08-17 15:51:40,613 - INFO - 2025-08-17 15:51:40.613635 |  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-17 15:51:40,615 - INFO - Creating folder for CDIF | 'C:\SaskTel_Bisen\Development\Data_Migration\output\structures'
+2025-08-17 15:51:40,615 - INFO - Creating Package metadata file | 'C:\SaskTel_Bisen\Development\Data_Migration\output\\package.metadata'
+2025-08-17 15:51:40,616 - INFO - Package metadata written sucessfully.'C:\SaskTel_Bisen\Development\Data_Migration\output\\package.metadata'
+2025-08-17 15:51:40,618 - INFO - Creating field mapping file  'C:\SaskTel_Bisen\Development\Data_Migration\output\structures\cabinet.fields' for object cabinet 
+2025-08-17 15:51:40,618 - INFO - Loading configuration JSON file  'C:\SaskTel_Bisen\Development\Data_Migration\config\cabinet.json' 
+2025-08-17 15:51:40,620 - INFO - Creating field mapping file completed for 'cabinet'
+2025-08-17 15:51:41,126 - INFO - Finalizing CDIF by compressing and putting all files in a zip file.
+2025-08-17 15:51:41,275 - INFO -  completed with  - 69 records | C:\SaskTel_Bisen\Development\Data_Migration\output\\CABINET_cdif20250817_155141.zip
+2025-08-17 15:51:41,278 - INFO - 2025-08-17 15:51:41.278227 |  ********** CDIF CREATION TASK FINISHED ********** 

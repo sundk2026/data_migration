@@ -1,0 +1,143 @@
+{
+    "Name": "buried_splice_location",
+    "Geometry_Type": "point",
+    "Display_Name": "Buried splice Location",
+    "Title": "",
+    "Short_Description": "",
+    "Track_Changes": "yes",
+    "Versioned": "Yes",
+    "Editable": "Yes",
+    "NE_Table": "Structure",
+    "Geometry": "shape",
+    "Source_ID": "object_id",
+    "UUID": "uuid",
+    "Filter": "CATEGORY_NAME = 'CLOSURE' and TYPE_NAME = 'CLOSURE",
+    "Attribute_Finalised": [
+        {
+            "Name": "id",
+            "Display": "Id",
+            "Type": "Unique ID",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "IQGeo",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "location",
+            "Display": "Location",
+            "Type": "Geometry",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "IQGeo",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "routes",
+            "Display": "Routes",
+            "Type": "Calculated",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "IQGeo",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "type_name",
+            "Display": "Type_name",
+            "Type": "",
+            "Field_Type": "string(20)",
+            "Field_Length": "",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "st_fbr_grnd_pnt_ind",
+            "Display": "Sasktel Fiber Ground Point Indicator",
+            "Type": "",
+            "Field_Type": "string(10)",
+            "Field_Length": "",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "clli_code",
+            "Display": "Clli Code",
+            "Type": "",
+            "Field_Type": "string(11)",
+            "Field_Length": "",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "st_clli_cd",
+            "Display": "Sasktel Cilli code",
+            "Type": "",
+            "Field_Type": "string(20)",
+            "Field_Length": "",
+            "FieldSource": "NE",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "o2dm",
+            "Display": "Optius Distinguished Name",
+            "Type": "",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "O2",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "o2cm",
+            "Display": "Optius Common Name",
+            "Type": "",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "O2",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "Closure type: Buried Splice",
+            "Display": "create Buried splice Location structure  in IQGeo and host Buried Splice Closure inside it to maintain topology rules.",
+            "Type": "",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "Closure type: PullBox",
+            "Display": "Migrate to Vault (Handhole)",
+            "Type": "",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "Closure type: Ready Access",
+            "Display": "Migrate to Pedestal (??) or new type in Pedestal (Ready Access)",
+            "Type": "",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "Closure type: Closure",
+            "Display": "Check in NE and see count, Ignore if not required",
+            "Type": "count only 3",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "",
+            "ReplaceValue": ""
+        },
+        {
+            "Name": "Symbol Library",
+            "Display": "TechM to use same Symbol as in NE, convert all rectangle block to square",
+            "Type": "",
+            "Field_Type": "",
+            "Field_Length": "",
+            "FieldSource": "",
+            "ReplaceValue": ""
+        }
+    ]
+}

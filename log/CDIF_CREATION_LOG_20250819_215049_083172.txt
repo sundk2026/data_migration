@@ -1,0 +1,8 @@
+2025-08-19 21:50:49,085 - INFO - 2025-08-19 21:50:49.085195 |  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-19 21:50:49,085 - INFO - Creating folder for CDIF | 'C:\SaskTel_Bisen\Development\Data_Migration\output\structures'
+2025-08-19 21:50:49,087 - INFO - Creating Package metadata file | 'C:\SaskTel_Bisen\Development\Data_Migration\output\\package.metadata'
+2025-08-19 21:50:49,089 - INFO - Package metadata written sucessfully.'C:\SaskTel_Bisen\Development\Data_Migration\output\\package.metadata'
+2025-08-19 21:50:49,089 - INFO - Creating field mapping file  'C:\SaskTel_Bisen\Development\Data_Migration\output\structures\st_struct_buried_splice_location.fields' for object st_struct_buried_splice_location 
+2025-08-19 21:50:49,089 - INFO - Loading configuration JSON file  'C:\SaskTel_Bisen\Development\Data_Migration\config\st_struct_buried_splice_location.json' 
+2025-08-19 21:50:49,092 - INFO - Creating field mapping file completed for 'st_struct_buried_splice_location'
+2025-08-19 21:50:49,209 - INFO - 2025-08-19 21:50:49.209226 |  ********** CDIF CREATION TASK FINISHED ********** 

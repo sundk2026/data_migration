@@ -1,0 +1,7 @@
+2025-08-05 18:09:54,846 - INFO - 2025-08-05 18:09:54.846531 |  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-05 18:09:54,848 - INFO - 2025-08-05 18:09:54.848555 | Creating folder | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\
+2025-08-05 18:09:54,848 - INFO - 2025-08-05 18:09:54.848555 | Creating field mapping file | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\vault.fields
+2025-08-05 18:09:54,852 - INFO - 2025-08-05 18:09:54.852592 | Creating field mapping file completed for | vault
+2025-08-05 18:09:54,852 - INFO - 2025-08-05 18:09:54.852592 |  creating CSV for manhole in | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\\vault.csv
+2025-08-05 18:11:58,756 - ERROR - 2025-08-05 18:11:58.756595 | Error occured in  CSV  file :  No module named 'xlsxwriter'| C:\SaskTel_Bisen\Development\Data_Migration\output\structures\\vault.csv
+2025-08-05 18:11:59,598 - INFO - 2025-08-05 18:11:59.598108 |  ********** CDIF CREATION TASK FINISHED ********** 

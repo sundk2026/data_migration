@@ -1,0 +1,7 @@
+2025-08-05 12:14:44,850 - INFO - 2025-08-05 12:14:44.850885 |  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-05 12:14:44,854 - INFO - 2025-08-05 12:14:44.854336 | Creating folder | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\
+2025-08-05 12:14:44,855 - INFO - 2025-08-05 12:14:44.855134 | Creating field mapping file | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\vault.fields
+2025-08-05 12:14:44,856 - INFO - 2025-08-05 12:14:44.856353 | Creating field mapping file completed for | vault
+2025-08-05 12:14:44,857 - INFO - 2025-08-05 12:14:44.857380 |  creating CSV for manhole in | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\\vault.csv
+2025-08-05 12:17:28,694 - ERROR - 2025-08-05 12:17:28.694847 | Error occured in  CSV  file :  4 columns passed, passed data had 3 columns| C:\SaskTel_Bisen\Development\Data_Migration\output\structures\\vault.csv
+2025-08-05 12:17:29,421 - INFO - 2025-08-05 12:17:29.421362 |  ********** CDIF CREATION TASK FINISHED ********** 

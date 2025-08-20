@@ -1,0 +1,2 @@
+2025-08-05 20:05:21,069 - INFO - 2025-08-05 20:05:21.069962 |  ********** CDIF CREATION TASK STARTED ********** 
+2025-08-05 20:05:28,527 - INFO - 2025-08-05 20:05:28.527690 | Creating design metadatafile | C:\SaskTel_Bisen\Development\Data_Migration\output\package.metadata
