@@ -1,0 +1,15 @@
+name,type,unit
+id,id,
+location,point,
+name,string(25)
+type_name,string(20)
+inventory_status_code,string(4)
+st_std_desc,string(30)
+clli_code,string(11)
+st_clli_cd,string(20)
+st_co_id,string(30)
+st_ownr_co_nm,string(50)
+created_user,string(255)
+created_date,timestamp
+last_edited_user,timestamp
+last_edited_date,DateTime

@@ -17,6 +17,13 @@ from pyproj import Geod
 from pyogrio import list_layers
 import sqlite3
 from shapely import wkb
+import random
+import string
+from typing import Literal, Union
+from shapely import wkb
+from shapely.ops import linemerge
+
+WKBLike = Union[str, bytes, bytearray]
 
 # pip install geopy 
 class UTILServices:
@@ -202,7 +209,7 @@ class UTILServices:
             
             # expr = in_pattern.sub(lambda m: f'~gdf["{m.group(1)}"].isin([{UTILServices._convert_in_list(m.group(2))}])', expr)
 
-            expr = re.sub( r'\b(\w+)\s+NOT\s+IN\s*\(([^)]+)\)', lambda m: f'~gdf["{m.group(1)}"].isin([{_convert_in_list(m.group(2))}])', expr, flags=re.IGNORECASE)
+            expr = re.sub( r'\b(\w+)\s+NOT\s+IN\s*\(([^)]+)\)', lambda m: f'~gdf["{m.group(1)}"].isin([{UTILServices._convert_in_list(m.group(2))}])', expr, flags=re.IGNORECASE)
             expr = re.sub( r'\b(\w+)\s+IN\s*\(([^)]+)\)', lambda m: f'gdf["{m.group(1)}"].isin([{UTILServices._convert_in_list(m.group(2))}])',expr, flags=re.IGNORECASE )
            
             # Step 2: Replace column names with gdf["col"]
@@ -475,3 +482,141 @@ class UTILServices:
             raise ValueError(f"Error in sqlite db migration: {ex}")
 
 
+    def generate_random_string(length): 
+        """Generates a pseudo-random string."""
+        characters = string.ascii_letters + string.digits
+        return ''.join(random.choice(characters) for i in range(length))
+
+
+    def insert_geometry(
+        base_wkb: WKBLike,
+        add_wkb: WKBLike,
+        # where: Literal["start", "end", "auto"] = "auto",
+        insert_at
+        # tolerance: float = 1e-8
+         
+    ) -> Union[str, bytes]:
+ 
+        g1 = UTILServices._ensure_mls(UTILServices._load_wkb(base_wkb))
+        g2 = UTILServices._ensure_mls(UTILServices._load_wkb(add_wkb))
+ 
+ 
+        if insert_at == 0:
+        # We want g2.end to meet g1.start. Flip g2 if its start is closer instead.
+            if UTILServices._start_point(g2).distance(UTILServices._start_point(g1)) < UTILServices._end_point(g2).distance(UTILServices._start_point(g1)):
+                g2 = UTILServices._reverse_mls(g2)
+                new_parts = list(g2.geoms) + list(g1.geoms)
+                join_gap = UTILServices._end_point(g2).distance(UTILServices._start_point(g1))
+        elif insert_at == -1:
+        # We want g2.start to meet g1.end. Flip g2 if its end is closer instead.
+            if UTILServices._end_point(g2).distance(UTILServices._end_point(g1)) < UTILServices._start_point(g2).distance(UTILServices._end_point(g1)):
+                g2 = UTILServices._reverse_mls(g2)
+                new_parts = list(g1.geoms) + list(g2.geoms)
+                join_gap = UTILServices._end_point(g1).distance(UTILServices._start_point(g2))
+            else:
+                raise ValueError("where must be 'start', 'end', or 'auto'")
+        # Build result
+        result = MultiLineString(new_parts)
+  
+        out = wkb.dumps(result)
+        return out.hex()  
+
+
+
+    def _load_wkb(g: WKBLike):
+        """Load WKB from hex string or bytes into a Shapely geometry."""
+        if isinstance(g, (bytes, bytearray)):
+            return wkb.loads(g)
+        if isinstance(g, str):
+        # assume hex; if not, this will raise ValueError
+            return wkb.loads(bytes.fromhex(g))
+        
+        raise TypeError("WKB must be hex string or bytes/bytearray")
+
+    def _ensure_mls(geom):
+        if geom.geom_type == "LineString":
+            return MultiLineString([geom])
+        if geom.geom_type == "MultiLineString":
+            return geom
+        raise TypeError(f"Expected (Multi)LineString, got {geom.geom_type}")
+    def _start_point(mls: MultiLineString) -> Point:
+        ls0 = mls.geoms[0]
+        return Point(ls0.coords[0])
+
+    def _end_point(mls: MultiLineString) -> Point:
+        lsN = mls.geoms[-1]
+        return Point(lsN.coords[-1])
+
+    def _reverse_linestring(ls: LineString) -> LineString:
+        return LineString(list(ls.coords)[::-1])
+
+    def _reverse_mls(mls: MultiLineString) -> MultiLineString:
+        # reverse order of parts and flip each part’s direction
+        rev_parts = [UTILServices._reverse_linestring(ls) for ls in mls.geoms[::-1]]
+        return MultiLineString(rev_parts)
+
+    def update_column(data, key_value, col_index, new_value):
+        for row in data:
+            if row[0] == key_value:  
+                row[col_index] = new_value
+        
+        return data
+    
+
+
+    def merge_multilines_wkb(a_wkb: WKBLike, b_wkb: WKBLike, return_hex: bool = True) -> Union[str, bytes]:
+     
+        def _load(g: WKBLike):
+            if isinstance(g, (bytes, bytearray)):
+                return wkb.loads(g)
+            if isinstance(g, str):
+                return wkb.loads(bytes.fromhex(g))
+            raise TypeError("WKB must be hex string or bytes/bytearray")
+        def _as_mls(geom):
+            if geom.geom_type == "LineString":
+                return MultiLineString([geom])
+            if geom.geom_type == "MultiLineString":
+                return geom
+            raise TypeError(f"Expected (Multi)LineString, got {geom.geom_type}")
+        def _start_pt(mls: MultiLineString) -> Point:
+            ls0 = mls.geoms[0]
+            return Point(ls0.coords[0])
+        def _end_pt(mls: MultiLineString) -> Point:
+            lsn = mls.geoms[len(mls.geoms)-1]
+            return Point(lsn.coords[len(lsn.coords)-1])
+        def _rev_ls(ls: LineString) -> LineString:
+            return LineString(list(ls.coords)[::-1])
+        def _rev_mls(mls: MultiLineString) -> MultiLineString:
+            # reverse order and direction of parts (Shapely 2 safe)
+            parts = [mls.geoms[i] for i in range(len(mls.geoms)-1, -1, -1)]
+            return MultiLineString([_rev_ls(ls) for ls in parts])
+        A = _as_mls(_load(a_wkb))
+        B = _as_mls(_load(b_wkb))
+        # Decide side automatically: B.end→A.start  vs  B.start→A.end
+        d_start_side = _end_pt(B).distance(_start_pt(A))
+        d_end_side = _start_pt(B).distance(_end_pt(A))
+        attach = "start" if d_start_side <= d_end_side else "end"
+        if attach == "start":
+            # We want B.end ≈ A.start; flip B if its start is closer to A.start
+            if _start_pt(B).distance(_start_pt(A)) < _end_pt(B).distance(_start_pt(A)):
+                B = _rev_mls(B)
+            
+            new_parts = list(B.geoms) + list(A.geoms)
+        else:
+                # We want B.start ≈ A.end; flip B if its end is closer to A.end
+            if _end_pt(B).distance(_end_pt(A)) < _start_pt(B).distance(_end_pt(A)):
+                B = _rev_mls(B)
+            new_parts = list(A.geoms) + list(B.geoms)
+            
+        merged = MultiLineString(new_parts)
+
+        merged_geometry = linemerge(merged)
+
+        # If you ever want to collapse into a single LineString when parts touch, uncomment:
+        # merged = linemerge(merged)
+        out = wkb.dumps(merged_geometry)
+        return out.hex() if return_hex else out
+    
+    def merge_corehole_geom (buried_geom, ch_geom, inserte_at):
+
+        return

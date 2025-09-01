@@ -17,6 +17,7 @@ from collections import defaultdict
 from time import strftime
 from time import gmtime
 from datetime import datetime
+import sqlite3
 
 class IQGeoCDIF:
     def __init__(self, output_folder_dir, folder_name,  config_json_file_path,input_gdb , extent="0"):
@@ -42,15 +43,14 @@ class IQGeoCDIF:
          
         logging.info(f"Creating folder for CDIF | '{self.folder_path}'")
         try:
-             
             if not os.path.exists(self.folder_path):
                 os.makedirs(self.folder_path ) 
         except:
             logging.error(str(datetime.now())+" | "+"ERROR IN Creating folder | "+self.folder_path)
-    
         return
         
     def _create_design_metadata(self):
+
         self.packagemetadata_file_name=self.rootDirectory +"\\package.metadata"
         logging.info(f"Creating Package metadata file | '{self.packagemetadata_file_name}'")
         
@@ -70,8 +70,8 @@ class IQGeoCDIF:
             print(f"Package metadata file could not be written. Error occured : '{str(e)}'")
             logging.error(f"Package metadata file '{self.packagemetadata_file_name}' could not be written. Error occured : '{str(e)}' ")
 
-
     def _create_field_mapping_file( self ):
+
         self.field_file_name= self.folder_path+"\\"+self.target_object.lower()+".fields"
         logging.info(f"Creating field mapping file  '{self.field_file_name}' for object {self.target_object} ")
 
@@ -84,7 +84,6 @@ class IQGeoCDIF:
             # # Load the JSON data from the file
             #     object_config_json = json.load(file)
            
-            
             fields=[]
             
             hdr_info=[["name","type","unit"]]
@@ -109,7 +108,6 @@ class IQGeoCDIF:
                 hdr_info.append([fld['Field_Name'].lower(),fld['Field_Type'],])
 
                     # fields_issues.append([fld['Field_Name'],0,0,0,fld['Mandatory']])
-             
 
             with open(self.field_file_name,'w',newline='') as csvfile:
                 writer=csv.writer(csvfile)
@@ -125,12 +123,10 @@ class IQGeoCDIF:
             print(f'Field metadata file could not be written. Error occured : {str(e)}')
             logging.error( f"Error occured in create field mapping file '{self.field_file_name}'. Error is {str(e)}  ")
 
-
     def InitiateProcess(self ):
         self.start_time = time.time()
         with open(self.config_json_file_path, 'r') as file:
             self.config_json = json.load(file)
-
 
         self.records_skipped_due_to_issue=0
         self.records_skipped_due_to_parent_data_mismatch_issue=0
@@ -145,38 +141,49 @@ class IQGeoCDIF:
         out_structure_clm= ""
         out_structure_left_clm=""
 
+        structure_fc= ""
+        structure_clm= ""
+        structure_left_clm=""        
+        structure_right_clm=""
+
         self.target_object=self.config_json.get("Name").lower()
         self.src_lyr=self.config_json.get("NE_Table")
         self.ref_structure_lyr=self.config_json.get("NE_Structure_Layer")
         self.filter_column=self.config_json.get("Filter")
         
         self.mf = self.config_json.get("Attribute_Finalised")
-        self.reference_fields = [flds for flds in self.mf if flds["FieldSource"].upper()=="IQGEO" and  flds["Field_Type"]=="Reference"  and flds["Join"] !=""]
+        self.reference_fields = [flds for flds in self.mf if flds["FieldSource"].upper()=="IQGEO" and  flds["Field_Type"].lower()=="reference"  and flds["Join"] !=""]  #
         for flds in self.reference_fields:
                 left_join_cond=flds['Join'].split('=')[0]
                 right_join_cond=flds['Join'].split('=')[1]
                 left_table=left_join_cond.split('.')[0]
                 if left_table!=self.src_lyr:
                     print(f"Warning!! Joining expression {flds['Join']} in referenced column referring to other then {self.src_lyr} layer. ")
+
                 left_col=left_join_cond.split('.')[1]
                 right_table=right_join_cond.split('.')[0]
                 right_col=right_join_cond.split('.')[1]
-                if flds['Field_Name']=="in_structure":
+
+                if flds['Field_Name']=="in_structure":      # To handle ROUTE and STRUCTURE Referencing 
                     in_structure_fc= right_table.upper()
                     self.in_structure_fc=right_table.upper()
                     in_structure_right_clm= right_col.upper() #
                     in_structure_left_clm=left_col.upper()
                     self.in_structure_left_clm=in_structure_left_clm
-                if flds['Field_Name']=="out_structure":
+                if flds['Field_Name']=="out_structure":  # To handle ROUTE and STRUCTURE Referencing 
                     out_structure_fc= right_table.upper()
                     self.out_structure_fc=right_table.upper()
                     out_structure_right_clm= right_col.upper()
                     out_structure_left_clm=left_col.upper()
                     self.out_structure_left_clm=out_structure_left_clm
                     #out_structure_gdf=gpd.read_file(self.input_gdb,layer=right_table,  columns=['object_id', right_col])
-                    
-
-                 
+                
+                if flds['Field_Name']=="structure_name":  # To handle Attachment and STRUCTURE Referencing for Pole Anchor 
+                    structure_fc= right_table.upper()
+                    self.structure_fc=right_table.upper()
+                    structure_right_clm= right_col.upper()
+                    structure_left_clm=left_col.upper()
+                    self.structure_left_clm=structure_left_clm
 
         self.filtered_fields = [flds for flds in self.mf if flds["FieldSource"]=="NE"]
         self.geo_fields = [flds for flds in self.mf if (flds["Field_Type"]) =="Geometry"]
@@ -187,9 +194,6 @@ class IQGeoCDIF:
                     NE_Fields_Name.append(flds['Field_Name'])
                 else:
                     NE_Fields_Name.append(flds['Source'])
-
-
-
 
         if len(self.geo_fields)>0:    
             self.geomfld=self.geo_fields[0]["Field_Name"]
@@ -203,8 +207,8 @@ class IQGeoCDIF:
         layers = list_layers(self.input_gdb)
         if self.src_lyr in layers:
             print(f"GDB Open Start at {time.time()}")
-
             self.org_gdf=gpd.read_file(self.input_gdb,layer=self.src_lyr )
+
             # self.org_gdf=gpd.read_file(self.input_gdb,layer=self.src_lyr,columns=NE_Fields_Name)
 
             print(f"GDB read completed at {time.time()}")
@@ -213,25 +217,37 @@ class IQGeoCDIF:
             mergedgdf=UTILServices.apply_sql_like_filter(self.org_gdf,self.filter_column) 
 
             if in_structure_fc!="": #In structure joining needs to be done
-                instr_gdf=gpd.read_file(self.input_gdb,layer=right_table,  columns=['object_id', in_structure_right_clm])
-                instr_gdf= instr_gdf.rename(columns={'object_id': 'instr_object_id', in_structure_right_clm: 'INSTR_'+in_structure_right_clm})
+                instr_gdf=gpd.read_file(self.input_gdb,layer=right_table,  columns=['object_id', in_structure_right_clm,'TYPE_NAME'])
+                instr_gdf= instr_gdf.rename(columns={'object_id': 'instr_object_id', in_structure_right_clm: 'INSTR_'+in_structure_right_clm,'TYPE_NAME': 'INSTR_TYPE_NAME'})   
+
                 self.in_structure_right_clm='INSTR_'+in_structure_right_clm
 
                 instr_gdf_atr=instr_gdf.drop(columns='geometry')
                 instr_gdf_geom=instr_gdf[[self.in_structure_right_clm, 'geometry']].rename(columns={"geometry":"InStrGeom"}) 
                 mergedgdf=mergedgdf.merge(instr_gdf_atr,  left_on=in_structure_left_clm, right_on=self.in_structure_right_clm, how='left' ).merge(instr_gdf_geom, left_on=in_structure_left_clm, right_on=self.in_structure_right_clm, how='left')
-
-            if out_structure_fc!="": #In structure joining needs to be done
-                outstr_gdf=gpd.read_file(self.input_gdb,layer=right_table,  columns=['object_id', out_structure_right_clm])
-                outstr_gdf= outstr_gdf.rename(columns={'object_id': 'outstr_object_id', out_structure_right_clm: 'OUTSTR_'+out_structure_right_clm})
+                
+            if out_structure_fc!="": #Out structure joining needs to be done
+                outstr_gdf=gpd.read_file(self.input_gdb,layer=right_table,  columns=['object_id', out_structure_right_clm,'TYPE_NAME'])
+                outstr_gdf= outstr_gdf.rename(columns={'object_id': 'outstr_object_id', out_structure_right_clm: 'OUTSTR_'+out_structure_right_clm,'TYPE_NAME': 'OUTSTR_TYPE_NAME'})
                 self.out_structure_right_clm='OUTSTR_'+out_structure_right_clm
                 outstr_gdf_atr=outstr_gdf.drop(columns='geometry')
                 outstr_gdf_geom=outstr_gdf[[self.out_structure_right_clm, 'geometry']].rename(columns={"geometry":"OutStrGeom"}) 
                 mergedgdf=mergedgdf.merge(outstr_gdf_atr,  left_on=out_structure_left_clm, right_on=self.out_structure_right_clm, how='left' ).merge(outstr_gdf_geom, left_on=out_structure_left_clm, right_on=self.out_structure_right_clm, how='left')    
             
+            if structure_fc!="": # Joinig to get Pole Anchor Structure reference
+                str_gdf=gpd.read_file(self.input_gdb,layer=right_table,  columns=['object_id',structure_right_clm,'TYPE_NAME'])
+                str_gdf= str_gdf.rename(columns={'object_id': 'str_object_id', structure_right_clm: 'STR_'+structure_right_clm,'TYPE_NAME': 'STR_TYPE_NAME'})
+                self.structure_right_clm='STR_'+structure_right_clm
+                str_gdf_atr=str_gdf.drop(columns='geometry')
+                str_gdf_geom=str_gdf[[self.structure_right_clm, 'geometry']].rename(columns={"geometry":"StrGeom"}) 
+                mergedgdf=mergedgdf.merge(str_gdf_atr,  left_on=structure_left_clm, right_on=self.structure_right_clm, how='left' )
+                                #    .merge(str_gdf_geom, left_on=structure_left_clm, right_on=self.structure_right_clm, how='left')    
             self.gdf=mergedgdf
             self.total_records=len(self.gdf)
-            self.Initialized=True
+            if self.total_records>0:
+                self.Initialized=True
+            else:
+                print("No data found to be processed. Terminating the job.")
         else:
             print(f"Source  layer {self.src_lyr} is missing in FileGDB."  ) 
 
@@ -241,7 +257,6 @@ class IQGeoCDIF:
             self.DataMigrationStatus=1
             rec_processed=0
             csv_data=[]
-            
             # string_truncate_object=[]
             # duplicate_geom=[]
             # summary_rpt=[]
@@ -250,20 +265,15 @@ class IQGeoCDIF:
             # type_mismatch_data=[]
             mandatory_objects_missing=[]
 
-            
-            
             self.string_truncate_object=[]
             self.bypassed_data=[]
             self.fields_issues= []
             self.type_mismatch_data= []
             self.parent_missing=[]
             self.topology_issues=[]
-
-            src_crs=self.gdf.crs
-            tgt_crs="EPSG:4326"
-            obj_id_pre_fix=self.src_lyr.replace(" ", "_")
-            uqfld=self.config_json.get("Source_ID")  
-            total_records= len(self.gdf)
+            self.skipped_conduit=[]
+            self.core_hole_merged=[]
+            
             clm_name=[]
             clm_name.append("id") #ID field column information 
             clm_name.append(self.geomfld)  
@@ -272,86 +282,16 @@ class IQGeoCDIF:
                 self.fields_issues.append([fld['Field_Name'],0,0,0,fld['Mandatory'],0])
                 clm_name.append(fld['Field_Name'].lower())
 
-
             for fld in self.filtered_fields:
                 self.fields_issues.append([fld['Field_Name'],0,0,0,fld['Mandatory'],0])
                 clm_name.append(fld['Field_Name'].lower())
 
-
-
-
             print("Processing data...  " ,end="")
-           
-            for index,row in self.gdf.iterrows():
-                csv_row=[]
-                trunc_record=False
-                db_type_issue=False
-                idval=row[uqfld]
-                if str(idval)=="22937":
-                    idval=row[uqfld]
-                iqgeo_ref_id_val= obj_id_pre_fix +'/'+ str( idval)  
 
-                # uq_fld_val=row[src_uq_fld]
-                str_geom=row["geometry"]  #geomfld
-
-               
-                csv_row.append(iqgeo_ref_id_val)
-                # csv_row.append(geom_wkb)
-                
-                is_any_val_truncated=False
-                fld_indx=0
-                in_str_geom=None
-                out_str_geom=None
-                for fld in self.reference_fields:
-                    fld_val =""
-                    if fld['Field_Name']=="in_structure":
-                        fld_val=row["instr_object_id"]
-                        in_str_geom=row["InStrGeom"]
-                        validated_obj=UTILServices.check_and_convert_value(fld_val,"bigint")
-                        if validated_obj['is_null']==True or validated_obj['is_nan']  ==True:
-                            fld_val=""
-                            self.parent_missing.append([idval,"in_structure", row[self.in_structure_left_clm]])
-                        else:
-                            fld_val =self.in_structure_fc.upper()+"/"+str(int(fld_val))
-
-                    if fld['Field_Name']=="out_structure":
-                        fld_val=row["outstr_object_id"]
-                        out_str_geom=row["OutStrGeom"]
-
-                        validated_obj=UTILServices.check_and_convert_value(fld_val,"bigint")
-                        if validated_obj['is_null']==True or validated_obj['is_nan']  ==True:
-                            fld_val=""
-                            self.parent_missing.append([idval,"out_structure", row[self.out_structure_left_clm]])
-                        else:
-                            fld_val =self.in_structure_fc.upper()+"/"+str(int(fld_val))
-
-                    csv_row.append( fld_val)
-                    fld_indx+=1
-
-                if in_str_geom !=None:
-                    if out_str_geom !=None:
-                        str_geom,d1,d2= UTILServices.change_path_start_endpoints(str_geom,in_str_geom, out_str_geom)
-                        if d1>10 or d2>10:
-                            self.topology_issues.append([idval,d1,d2])
-                geom_wkb=UTILServices.getEWKB(str_geom,src_crs,tgt_crs)
-                csv_row.insert(1,geom_wkb)
-
-                for fld in self.filtered_fields:
-                    fld_val=self._GetFieldValue(fld,fld_indx,row,idval)
-                    csv_row.append( fld_val)
-                    fld_indx+=1
-                           
-                percent =int(100* (rec_processed / total_records))
-                print (f"{rec_processed} of {total_records} - {percent} %",end="\r")
-
-                self.records_skipped_due_to_issue=0
-                
-                if trunc_record==True :
-                    self.number_of_records_truncated+=1
-                if db_type_issue==True :
-                    self.self.records_skipped_due_to_issue+=1
-                csv_data.append(csv_row)
-                rec_processed+=1
+            if self.folder_name=="structures": 
+                csv_data,rec_processed=self.ProcessStructure(clm_name)
+            if self.folder_name=="route": 
+                csv_data,rec_processed=self.ProcessRoute(clm_name)
 
             print( str(rec_processed) + " rows processed." )
             flindx=-1
@@ -370,18 +310,365 @@ class IQGeoCDIF:
             # self.type_mismatch_data=type_mismatch_data
             self.total_rec_processed = rec_processed
             self.csv_file_name=self.folder_path+ "\\"+self.target_object+".csv"
-
-            
-
+          
             self._WriteCSVFile(self.csv_file_name ,clm_name,csv_data)        
-        
+           
             self.DataMigrationStatus=2
 
         else:
             print("Proces is not initlizaed properly, either Initilization could not be performed OR some issue may occured during initialization.")
 
         return
+    def ProcessStructure(self,clm_name):
+        csv_data=[]
+        rec_processed=0
+        total_records= len(self.gdf)
+        src_crs=self.gdf.crs
+        tgt_crs="EPSG:4326"
+        obj_id_pre_fix=self.src_lyr.replace(" ", "_")
+        uqfld=self.config_json.get("Source_ID")  
+        for index,row in self.gdf.iterrows():
+            csv_row=[]
+            trunc_record=False
+            db_type_issue=False
+            
+            idval=re.sub(r'[^0-9a-zA-Z]', '', row[uqfld])
+            # if str(idval)=="22937":
+            #     idval=row[uqfld]
+            # iqgeo_ref_id_val= obj_id_pre_fix +'/'+ str( idval)  
+            # iqgeo_ref_id_val= obj_id_pre_fix +'/'+  idval
+            iqgeo_ref_id_val= obj_id_pre_fix +  idval
 
+            # uq_fld_val=row[src_uq_fld]
+            str_geom=row["geometry"]  #geomfld
+
+            csv_row.append(iqgeo_ref_id_val)
+            # csv_row.append(geom_wkb)
+            
+            is_any_val_truncated=False
+               
+            geom_wkb=UTILServices.getEWKB(str_geom,src_crs,tgt_crs)
+            csv_row.append(geom_wkb)
+            fld_indx=0
+
+            for fld in self.reference_fields:
+       
+                fld_val =""
+                # if fld['Field_Name']=="structure_name":
+                    # fld_val=row["str_object_id"]
+                    # # in_str_geom=row["InStrGeom"]
+                    # validated_obj=UTILServices.check_and_convert_value(fld_val,"str")
+                    # if validated_obj['is_null']==True or validated_obj['is_nan']  ==True:
+                    #     fld_val=""
+                    #     self.parent_missing.append([idval,"in_structure", row[self.structure_left_clm]])
+                    # else:
+                    #     fld_val =self.structure_fc.upper()+"/"+str((fld_val))
+
+
+                if fld['Field_Name']=="structure_name":
+                    if pd.isnull(row["str_object_id"]):
+                        fld_val="" 
+                        self.parent_missing.append([row[uqfld],"ref_structure", row[self.in_structure_right_clm+'_x'] ,  ''])
+                    else:
+                        fld_val=re.sub(r'[^0-9a-zA-Z]', '', row["str_object_id"])  
+
+                        # in_str_geom=row["InStrGeom"]
+                        validated_obj=UTILServices.check_and_convert_value(fld_val,"str")
+                        if validated_obj['is_null']==True or validated_obj['is_nan']  ==True:
+                            fld_val=""
+                            self.parent_missing.append([row[uqfld],"ref_structure", row[self.in_structure_right_clm+'_x'] , ''])
+                        else:
+                            fld_val =self.structure_fc.upper()+str((fld_val))
+
+
+
+                csv_row.append( fld_val)
+                fld_indx+=1
+
+            for fld in self.filtered_fields:
+                fld_val=self._GetFieldValue(fld,fld_indx,row,idval)
+                csv_row.append( fld_val)
+                fld_indx+=1
+                        
+            percent =int(100* (rec_processed / total_records))
+            print (f"{rec_processed} of {total_records} - {percent} %",end="\r")
+
+            self.records_skipped_due_to_issue=0
+            
+            if trunc_record==True :
+                self.number_of_records_truncated+=1
+            if db_type_issue==True :
+                self.records_skipped_due_to_issue+=1
+            csv_data.append(csv_row)
+            rec_processed+=1
+        return csv_data,rec_processed
+    
+    def ProcessRoute(self, clm_name):
+        sqlite_path = self.rootDirectory +"\\"+UTILServices.generate_random_string(10)
+         
+        conn = sqlite3.connect(sqlite_path)
+        cur = conn.cursor()
+        create_sql = f"CREATE TABLE IF NOT EXISTS route_geom (str_hash TEXT, geom TEXT, lngth REAL , no_vertex INTEGER , obj_id TEXT, from_str_id TEXt, to_str_id TEXT, from_str_type TEXt, to_str_type TEXT, span_type TEXT,in_str_name TEXT,out_str_name TEXT);"
+        cur.execute(create_sql)
+        create_sql = f"CREATE INDEX idx_str_hash ON route_geom (str_hash);"
+        cur.execute(create_sql)
+
+        csv_data=[]
+        conduit_data=[]
+        corehole_data=[]
+        
+        rec_processed=0
+        total_records= len(self.gdf)
+        src_crs=self.gdf.crs
+        tgt_crs="EPSG:4326"
+        obj_id_pre_fix=self.src_lyr.replace(" ", "_")
+        uqfld=self.config_json.get("Source_ID")  
+        frm_str_fld_indx=-1
+        to_str_fld_indx=-1
+       
+        self.gdf.sort_values(by=['CALCULATED_LENGTH','Shape_Length'],  inplace=True)
+
+        for index,row in self.gdf.iterrows():
+            csv_row=[]
+            
+            trunc_record=False
+            db_type_issue=False
+            frm_str_obj_id=""
+            to_str_obj_id=""
+            
+             
+            idval=re.sub(r'[^0-9a-zA-Z]', '', row[uqfld])
+            if str(row[uqfld])=="{F7881B93-DA6D-44D7-A9C3-D99E4312CFDF}":
+                idval=row[uqfld]
+                idval=re.sub(r'[^0-9a-zA-Z]', '', row[uqfld])
+
+            # iqgeo_ref_id_val= obj_id_pre_fix +'/'+ str( idval)  
+            iqgeo_ref_id_val= obj_id_pre_fix + idval
+
+            # uq_fld_val=row[src_uq_fld]
+            str_geom=row["geometry"]  #geomfld
+  
+            csv_row.append(iqgeo_ref_id_val)
+            # csv_row.append(geom_wkb)
+            
+            is_any_val_truncated=False
+            fld_indx=0
+            in_str_geom=None
+            out_str_geom=None
+            for fld in self.reference_fields:
+                fld_val =""
+                if fld['Field_Name']=="in_structure":
+                    if pd.isnull(row["instr_object_id"]):
+                        frm_str_obj_id="" 
+                        self.parent_missing.append([row[uqfld],"in_structure", row[self.in_structure_right_clm+'_x'] , row[self.out_structure_right_clm +'_x']])
+                    else:
+                        frm_str_obj_id=re.sub(r'[^0-9a-zA-Z]', '', row["instr_object_id"])  
+
+                        in_str_geom=row["InStrGeom"]
+                        validated_obj=UTILServices.check_and_convert_value(fld_val,"str")
+                        if validated_obj['is_null']==True or validated_obj['is_nan']  ==True:
+                            frm_str_obj_id=""
+                            self.parent_missing.append([row[uqfld],"in_structure", row[self.in_structure_right_clm+'_x'] , row[self.out_structure_right_clm +'_x']])
+                        else:
+                            frm_str_obj_id =self.in_structure_fc.upper()+str((frm_str_obj_id))
+                    fld_val=frm_str_obj_id
+
+                if fld['Field_Name']=="out_structure":
+                    if pd.isnull(row["outstr_object_id"]):
+                        to_str_obj_id="" 
+                        self.parent_missing.append([row[uqfld],"out_structure",  row[self.in_structure_right_clm+'_x'] , row[self.out_structure_right_clm +'_x']])
+                    else:
+                        to_str_obj_id=re.sub(r'[^0-9a-zA-Z]', '', row["outstr_object_id"])   
+                        out_str_geom=row["OutStrGeom"]
+
+                        validated_obj=UTILServices.check_and_convert_value(fld_val,"str")
+                        if validated_obj['is_null']==True or validated_obj['is_nan']  ==True:
+                            to_str_obj_id=""
+                            self.parent_missing.append([row[uqfld],"out_structure",  row[self.in_structure_right_clm+'_x'] , row[self.out_structure_right_clm +'_x']])
+                        else:
+                            to_str_obj_id =self.in_structure_fc.upper()+str((to_str_obj_id))
+                    fld_val=to_str_obj_id
+
+                csv_row.append( fld_val)
+                fld_indx+=1
+
+            if in_str_geom !=None:
+                if out_str_geom !=None:
+                    in_str_type = row['TYPE_NAME']
+                    str_geom,d1,d2= UTILServices.change_path_start_endpoints(str_geom,in_str_geom, out_str_geom)
+                    if d1>10 or d2>10:
+                        self.topology_issues.append([idval,d1,d2])
+            geom_wkb=UTILServices.getEWKB(str_geom,src_crs,tgt_crs)
+            csv_row.insert(1,geom_wkb)
+           # fld_indx+=1
+
+            for fld in self.filtered_fields:
+                if fld["Field_Name"].upper()=="FROM_STRUCTURE_NAME" : frm_str_fld_indx=fld_indx+2
+                if fld["Field_Name"].upper()=="TO_STRUCTURE_NAME": to_str_fld_indx=fld_indx+2
+
+                fld_val=self._GetFieldValue(fld,fld_indx,row,idval)
+                csv_row.append( fld_val)
+                fld_indx+=1
+ 
+            self.records_skipped_due_to_issue=0
+            
+            if trunc_record==True :
+                self.number_of_records_truncated+=1
+            if db_type_issue==True :
+                self.records_skipped_due_to_issue+=1
+            		
+            
+            if row["TYPE_NAME"] in  ['BURIED', 'FLOOR SPAN', 'FOREIGN BURIED','FORMATION','RISER','TROUGH','TUNNEL']:
+                csv_data.append(csv_row)
+                FROM_STRUCTURE_NAME=row["FROM_STRUCTURE_NAME"]
+                TO_STRUCTURE_NAME=row["TO_STRUCTURE_NAME"]
+
+                   
+
+                if frm_str_obj_id>to_str_obj_id:
+                    str_key=frm_str_obj_id+'|'+to_str_obj_id
+                else:
+                    str_key=to_str_obj_id +'|'+frm_str_obj_id
+                
+                lengths = str_geom.length
+                v_n=  len(str_geom.geoms[0].coords)
+                # cur.execute("INSERT INTO route_geom (str_hash , geom , lngth , no_vertex , obj_id , from_str_id , to_str_id , from_str_type , to_str_type , span_type ,in_str_name ,out_str_name  ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",(str_key,geom_wkb,lengths ,v_n ,iqgeo_ref_id_val, row['instr_object_id'],row['outstr_object_id'], row['INSTR_TYPE_NAME'],row['OUTSTR_TYPE_NAME'],row["TYPE_NAME"],FROM_STRUCTURE_NAME,TO_STRUCTURE_NAME ))
+                cur.execute("INSERT INTO route_geom (str_hash , geom , lngth , no_vertex , obj_id , from_str_id , to_str_id , from_str_type , to_str_type , span_type ,in_str_name ,out_str_name  ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",(str_key,geom_wkb,lengths ,v_n ,iqgeo_ref_id_val, frm_str_obj_id,to_str_obj_id, row['INSTR_TYPE_NAME'],row['OUTSTR_TYPE_NAME'],row["TYPE_NAME"],FROM_STRUCTURE_NAME,TO_STRUCTURE_NAME ))
+
+                
+                
+            if row["TYPE_NAME"] == 'MESSENGER' :
+                FROM_STRUCTURE_NAME=row["FROM_STRUCTURE_NAME"]
+                TO_STRUCTURE_NAME=row["TO_STRUCTURE_NAME"]
+                # frm_str_obj_id = row['instr_object_id']
+                # to_str_obj_id = row['outstr_object_id']
+                if frm_str_obj_id>to_str_obj_id:
+                    str_key=frm_str_obj_id+'|'+to_str_obj_id
+                else:
+                    str_key=to_str_obj_id +'|'+frm_str_obj_id
+                
+                query = f"select obj_id, from_str_id, to_str_id , str_hash,geom from route_geom rg  where str_hash= '{str_key}'"
+                cur.execute(query )
+                msngr_results = cur.fetchall()
+                if msngr_results:
+                     self.bypassed_data.append([iqgeo_ref_id_val,'Messenger Route already created',FROM_STRUCTURE_NAME + ' TO ' + TO_STRUCTURE_NAME])
+                else:                    
+                    lengths = str_geom.length
+                    v_n=  len(str_geom.geoms[0].coords)
+                    cur.execute("INSERT INTO route_geom (str_hash , geom , lngth , no_vertex , obj_id , from_str_id , to_str_id , from_str_type , to_str_type , span_type ,in_str_name ,out_str_name  ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",(str_key,geom_wkb,lengths ,v_n ,iqgeo_ref_id_val, frm_str_obj_id,to_str_obj_id, row['INSTR_TYPE_NAME'],row['OUTSTR_TYPE_NAME'],row["TYPE_NAME"],FROM_STRUCTURE_NAME,TO_STRUCTURE_NAME ))
+                    csv_data.append(csv_row)
+                
+            if row["TYPE_NAME"] =='CONDUIT':
+                conduit_data.append(csv_row)
+                # print('bypassing conduit for time being')
+            if row["TYPE_NAME"] == 'CORE HOLE':
+                corehole_data.append(csv_row)
+            # if row["TYPE_NAME"] == 'MESSENGER':
+                
+
+            rec_processed+=1
+            percent =int(100* (rec_processed / total_records))
+            print (f"{rec_processed} of {total_records} - {percent} %",end="\r")
+        conn.commit()
+# Checking Messenger data and modifying geom to shortest path if found
+        
+
+        clidx=0
+        nm_idx=-1
+        if frm_str_fld_indx== -1 or to_str_fld_indx==-1 :
+            for cl in clm_name:
+                if cl=='in_structure':frm_str_fld_indx= clidx
+                if cl=='out_structure':to_str_fld_indx= clidx
+                if cl=='name':
+                    nm_idx=clidx
+                clidx+=1
+
+
+        if len(conduit_data)>0:
+            print('Conduit data processing')
+
+            for conduit_rw in conduit_data:
+                FROM_STRUCTURE_NAME=conduit_rw[frm_str_fld_indx]
+                TO_STRUCTURE_NAME=conduit_rw[to_str_fld_indx]
+                id_val=conduit_rw[0]
+                if FROM_STRUCTURE_NAME>TO_STRUCTURE_NAME:
+                    str_key=FROM_STRUCTURE_NAME+'|'+TO_STRUCTURE_NAME
+                else:
+                    str_key=TO_STRUCTURE_NAME +'|'+FROM_STRUCTURE_NAME
+                
+                query = f"SELECT str_hash , obj_id FROM  route_geom WHERE str_hash = '{str_key}' "
+            #     if conduit_rw[0]=='SPAN_REG16/376953':
+            #         print (query)
+            # # Execute the query with the search value as a parameter
+                cur.execute(query )
+
+            # Fetch all matching rows
+                results = cur.fetchall()
+                if results:
+                    print(f"Found route for '{str_key}' so skippling the counduit.")
+                    # for crw in results:
+                    if nm_idx==-1:
+                        self.skipped_conduit.append([FROM_STRUCTURE_NAME, TO_STRUCTURE_NAME, str_key,id_val])
+                    else:
+                        self.skipped_conduit.append([FROM_STRUCTURE_NAME, TO_STRUCTURE_NAME, str_key,conduit_rw[nm_idx]])
+
+                    # for row in found_data:
+                    #     print(row)
+                else:
+                    cur.execute("INSERT INTO route_geom (str_hash, geom, lngth , no_vertex , obj_id) VALUES (?,?,?,?,?)",(str_key,'',0 ,0 ,iqgeo_ref_id_val))
+                    conn.commit()
+                    csv_data.append(conduit_rw)     
+        if len(corehole_data)>0:
+            print('Core Hole data processing')
+            for corehole_rw in  corehole_data:
+                # print(f'Processsing core hole {corehole_rw}')
+                FROM_STRUCTURE_NAME=corehole_rw[frm_str_fld_indx]
+                TO_STRUCTURE_NAME=corehole_rw[to_str_fld_indx]
+                if FROM_STRUCTURE_NAME>TO_STRUCTURE_NAME:
+                    str_key=FROM_STRUCTURE_NAME+'|'+TO_STRUCTURE_NAME
+                else:
+                    str_key=TO_STRUCTURE_NAME +'|'+FROM_STRUCTURE_NAME
+
+                query = f"SELECT str_hash , obj_id, from_str_id, to_str_id FROM  route_geom WHERE (from_str_id = '{FROM_STRUCTURE_NAME}' or to_str_id = '{TO_STRUCTURE_NAME}' or to_str_id  = '{FROM_STRUCTURE_NAME}' or from_str_id = '{TO_STRUCTURE_NAME}' ) AND (span_type = 'BURIED' or span_type ='FOREIGN BURIED' )AND ( from_str_type  ='SPAN JUNCTION' OR to_str_type ='SPAN JUNCTION') "
+              
+                cur.execute(query )
+                results = cur.fetchall()
+                if results:
+                    for crw in results:
+                        # self.core_hole_merged.append(crw['obj_id'],)
+                        buried_span_id_to_update_geom=crw[1]
+                        buried_span_id_from_structure=crw[2]
+                        buried_span_id_to_structure=crw[3]
+                        ch_span_geom=corehole_rw[1]
+
+                        insert_vertices_at=None
+                        if FROM_STRUCTURE_NAME == buried_span_id_from_structure:
+                            insert_vertices_at=0
+                        elif FROM_STRUCTURE_NAME == buried_span_id_to_structure:
+                            insert_vertices_at=-1
+                        elif TO_STRUCTURE_NAME == buried_span_id_from_structure:
+                            insert_vertices_at=0
+                        elif TO_STRUCTURE_NAME == buried_span_id_to_structure:
+                            insert_vertices_at=-1
+                        
+                        if insert_vertices_at== 0 or insert_vertices_at==-1:
+                            csv_data=self._UpdateBuriedSpanGeomByMergeCoreHole(csv_data,insert_vertices_at,ch_span_geom , buried_span_id_to_update_geom,corehole_rw[0],FROM_STRUCTURE_NAME,TO_STRUCTURE_NAME)
+                            print('bypass')
+
+                        # print (buried_span_id_to_update_geom)
+                else:
+                    self.core_hole_merged.append(['CORE HOLE IGNORED',corehole_rw[0], FROM_STRUCTURE_NAME,TO_STRUCTURE_NAME,''])
+    
+        conn.commit()
+        conn.close()
+        try:
+            os.remove(sqlite_path)
+            print('Removing db file')
+        except Exception as ex:
+            print(f"Unable to delete temp db  file {sqlite_path}")
+            
+        return csv_data,rec_processed
+    
     def FinalizeCDIF(self):
         print(f"Finalizing CDIF by compressing and putting all files in a zip file  .")
         logging.info(f"Finalizing CDIF by compressing and putting all files in a zip file.")
@@ -394,7 +681,6 @@ class IQGeoCDIF:
         
          
         logging.info( f" completed with  - "+ str(self.total_rec_processed) +" records | "+ self.output_zip_file_name   )
-
 
     def _GetReferenceFieldValue(self,fld,fld_indx,row,idval):
 
@@ -468,22 +754,29 @@ class IQGeoCDIF:
                     logging.warning(f"Warning: File '{file_name}' not found in '{self.folder_path}' and could not be added to the zip.")
 
     def _WriteCSVFile(self,file_name,clm_name, csvdata):
-        
-        with open(file_name,'w',newline='',encoding='utf-8') as csvfile:
-                writer=csv.writer(csvfile)
-                # for csvdata in csvdata_list:
-                writer.writerow( clm_name)        
-                writer.writerows( csvdata[1:])        
-                         
+        if len(csvdata)>0:
+            with open(file_name,'w',newline='',encoding='utf-8') as csvfile:
+                    writer=csv.writer(csvfile)
+                    # for csvdata in csvdata_list:
+                    writer.writerow( clm_name)        
+                    writer.writerows( csvdata)        
+        else:
+            print("No data processed to write the CSV file.")                    
     def _WriteSummaryReport(self ):
         
         df_xl1 = pd.DataFrame(self.string_truncate_object, columns=['Object ID','Field Name', 'Original String', 'Truncated String'])
         df_xl2 = pd.DataFrame(self.duplicate_geom, columns=['Object ID','Name','Geom'])
         df_xl3 = pd.DataFrame(self.bypassed_data, columns=['Object ID','Bypassed for Field','Field Value'])
         df_xl4 = pd.DataFrame(self.type_mismatch_data, columns=['Object ID','Field Name','Field Type','Field Value'])
-        df_xl4 = pd.DataFrame(self.parent_missing, columns=['Object ID','Type','For Object'])
-        
         df_xl5 = pd.DataFrame(self.topology_issues, columns=['Object ID','Start Point Distance','End Point Distance'])
+        
+        if len(self.skipped_conduit)>0:
+            df_xl6 = pd.DataFrame(self.skipped_conduit, columns=['FROM_STRUCTURE_NAME', 'TO_STRUCTURE_NAME', 'STRUCTURE_HASH','OBJ_ID'])
+        if len(self.core_hole_merged)>0:
+            df_xl7 = pd.DataFrame(self.core_hole_merged, columns=['ACTION_TAKEN','CORE HOLE ID','FROM_STRUCTURE_NAME', 'TO_STRUCTURE_NAME', 'SPAN ID GEOMETRY UPDATED'])
+        if len(self.parent_missing)>0:
+            df_xl8 = pd.DataFrame(self.parent_missing, columns=['Object ID','Type','From Structure','To Structure'])
+        
 
         excel_file_path = self.rootDirectory  + '\\SummaryReport_'+ self.target_object.upper() +"_"+datetime.now().strftime("%Y%m%d_%H%M%S")+".xlsx"
         # df_xl.to_excel(excel_file_path, index=False, sheet_name='TruncatedValues')
@@ -491,12 +784,17 @@ class IQGeoCDIF:
         with pd.ExcelWriter(excel_file_path, engine='xlsxwriter') as writer:
             df_xl1.to_excel(writer, sheet_name='TruncatedValues', index=False)
             df_xl2.to_excel(writer, sheet_name='DuplicateGeom', index=False)
-            df_xl3.to_excel(writer, sheet_name='OutsideDomain', index=False)
-            df_xl4.to_excel(writer, sheet_name='DataTypeMismatch', index=False)
+            df_xl3.to_excel(writer, sheet_name='OutsideDomain_Bypassed', index=False)
+            df_xl4.to_excel(writer, sheet_name='Missing_Mismatch', index=False)
             df_xl5.to_excel(writer, sheet_name='TopologyIssue', index=False)
 
-        
-        
+            if len(self.skipped_conduit)>0:
+                df_xl6.to_excel(writer, sheet_name='SkippedConduit', index=False)
+            if len(self.core_hole_merged)>0:
+                df_xl7.to_excel(writer, sheet_name='CoreHole', index=False)
+            if len(self.parent_missing)>0:
+                df_xl8.to_excel(writer, sheet_name='MissingObjects', index=False)
+
         end_time = time.time()
         elapsed_seconds = end_time - self.start_time
 
@@ -624,3 +922,45 @@ class IQGeoCDIF:
         wb.active = ws_openpyxl
         wb.save(excel_file_path)
      
+    def _UpdateMessengerGeom(self,multiple_msngr, csv_data):
+        print("Updating MESSANGER Geometry")
+        # query = f"select obj_id, from_str_id, to_str_id , str_hash,geom from route_geom rg  where str_hash in (select  str_hash from route_geom rg  where span_type like 'MESS%'  group by str_hash having count(1)>1) order by str_hash, no_vertex "
+        shortest_geom_obj_id=''
+        shortest_geom= ''
+        last_str_hash=''
+        for crw in multiple_msngr:
+            cur_str_hash=crw[3]
+            if last_str_hash!=cur_str_hash:
+                #bypassing 1st row of group which has lowest vertices / length
+                # shortest_geom_obj_id=crw[0]
+                shortest_geom=crw[4]
+            else:
+                for row in csv_data:
+                    if row[0] == crw[0]  :
+                        row[1]=shortest_geom
+                        break
+            
+            last_str_hash=cur_str_hash
+        
+        return csv_data
+            
+    def _UpdateBuriedSpanGeomByMergeCoreHole(self,csv_data,insert_vertices_at,ch_span_geom , buried_span_id_to_update_geom,ch_span_id ,FROM_STRUCTURE_NAME,TO_STRUCTURE_NAME):
+        
+        geom_updated=False
+        for row in csv_data:
+            if row[0] == buried_span_id_to_update_geom:  
+                buried_span_geom= row[1]
+                print(f"Merging CoreHole Geometry for- {buried_span_id_to_update_geom} from geom {ch_span_geom} to geom {buried_span_geom} ")
+
+                # updated_geom = UTILServices.insert_geometry(buried_span_geom,ch_span_geom,insert_vertices_at)
+                updated_geom = UTILServices.merge_multilines_wkb(buried_span_geom,ch_span_geom)
+                updated_geom= updated_geom.upper()
+                row[1] = updated_geom
+                self.core_hole_merged.append(['CORE HOLE GEOM MERGED',ch_span_id,FROM_STRUCTURE_NAME,TO_STRUCTURE_NAME , buried_span_id_to_update_geom])
+                geom_updated=True
+                break
+            
+        if geom_updated==False:
+            self.core_hole_merged.append(['CORE HOLE GEOM COULD NOT MERGED',ch_span_id,FROM_STRUCTURE_NAME,TO_STRUCTURE_NAME , buried_span_id_to_update_geom])
+            
+        return csv_data

@@ -90,11 +90,14 @@ if __name__ == "__main__":
         file_config=sys.argv[2]
         output_folder = sys.argv[3]
     else:
-        fgdb_path=r'C:\SaskTel_Bisen\SaskTelData\SaskTel.gdb'
-        file_config=r'C:\SaskTel_Bisen\Development\Data_Migration\config\st_struct_buried_splice_location.json'
+        fgdb_path=r'C:\SaskTel_Bisen\SaskTelData\ReginaS84\ReginaS84.gdb'
+        file_config=r'C:\SaskTel_Bisen\Development\Data_Migration\config\st_struct_route_junction.json'
+        # C:\SaskTel_Bisen\Development\Data_Migration\config\st_struct_pole.json
         # file_config=r'C:\SaskTel_Bisen\Development\Data_Migration\config\vault.json'
 
         output_folder = "structures"
+        # output_folder = "route"
+
         # pole_config= r"C:\SaskTel_Bisen\Development\Data_Migration\config\pole.json"
 
     print ("File GDB - "+ fgdb_path)
@@ -130,8 +133,7 @@ if __name__ == "__main__":
     )
     logging.info(str(datetime.now())+" | " + " ********** CDIF CREATION TASK STARTED ********** " )
     
-    #create_design_metadata(fgdb_path)
-    # create_structure_csv ( fgdb_path,vault_config,"structures")
+ 
 
     create_route_csv ( fgdb_path,file_config,output_folder)
 
@@ -141,3 +143,6 @@ if __name__ == "__main__":
     logging.info(str(datetime.now())+" | " + " ********** CDIF CREATION TASK FINISHED ********** " )
 # else:
 #         print ("Required arguments not provided.  python.exe  export_config  'excel file name'  'output folder path'")
+
+# python export_route.py "#filegdb file path#" "#config json file path#" "route"
+# python export_route.py "#filegdb file path#" "#config json file path#" "route"

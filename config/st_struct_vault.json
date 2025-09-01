@@ -7,7 +7,7 @@
     "Track_Changes": "Yes",
     "Versioned": "Yes",
     "Editable": "Yes",
-    "NE_Table": "Structure",
+    "NE_Table": "STRUCTURE",
     "Geometry": "shape",
     "Source_ID": "object_id",
     "UUID": "uuid",
@@ -210,6 +210,20 @@
             "Join": ""
         },
         {
+            "Field_Name": "last_workorder_name",
+            "Display": "Last Work Order Name",
+            "Type": "",
+            "Field_Type": "string(20)",
+            "Field_Length": "",
+            "FieldSource": "IQGeo",
+            "ReplaceValue": "",
+            "Mandatory": "Yes",
+            "defaultvalue": "",
+            "DomainValue": "",
+            "Source": "",
+            "Join": ""
+        },
+        {
             "Field_Name": "st_std_desc",
             "Display": "Standard Description",
             "Type": "",
@@ -318,7 +332,7 @@
             "Mandatory": "No",
             "defaultvalue": "",
             "DomainValue": "",
-            "Source": "st_vlt_id",
+            "Source": "",
             "Join": ""
         },
         {
@@ -330,20 +344,6 @@
             "FieldSource": "NE",
             "ReplaceValue": "",
             "Mandatory": "Yes",
-            "defaultvalue": "",
-            "DomainValue": "",
-            "Source": "st_mh_cnfg_cd",
-            "Join": ""
-        },
-        {
-            "Field_Name": "st_trmnl_id",
-            "Display": "Terminal Identifier",
-            "Type": "",
-            "Field_Type": "string(20)",
-            "Field_Length": "",
-            "FieldSource": "NE",
-            "ReplaceValue": "",
-            "Mandatory": "No",
             "defaultvalue": "",
             "DomainValue": "",
             "Source": "",
@@ -547,9 +547,9 @@
         },
         {
             "Field_Name": "New Model for Vault",
-            "Display": "New Model to be created in IQGeo for Vaults.",
+            "Display": "New Model to be created in IQGeo for Vaults and then modify all existing models to new model. And then, transfer data",
             "Type": "",
-            "Field_Type": "SaskTel shall provide details",
+            "Field_Type": "SaskTel shall provide details. Need a discussion on August 28.",
             "Field_Length": "",
             "FieldSource": "",
             "ReplaceValue": "",
@@ -575,9 +575,9 @@
         },
         {
             "Field_Name": "New Model for Vault",
-            "Display": "Need a session for manhole",
+            "Display": "Reconciliation of Manhole models into standard specifications. And standardize the the symbology\n\nSubsequently, data migration values need to be taken care",
             "Type": "",
-            "Field_Type": "SaskTel shall provide details. Tech shall schedule a meeting",
+            "Field_Type": "Discuss on August 28 to standardize manhole models",
             "Field_Length": "",
             "FieldSource": "",
             "ReplaceValue": "",

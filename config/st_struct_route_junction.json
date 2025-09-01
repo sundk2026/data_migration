@@ -7,11 +7,11 @@
     "Track_Changes": "yes",
     "Versioned": "Yes",
     "Editable": "Yes",
-    "NE_Table": "Structure",
+    "NE_Table": "STRUCTURE",
     "Geometry": "shape",
     "Source_ID": "object_id",
     "UUID": "uuid",
-    "Filter": "CATEGORY_NAME = 'SPAN_JUNCTION'",
+    "Filter": "CATEGORY_NAME ='SPAN JUNCTION'",
     "Attribute_Finalised": [
         {
             "Field_Name": "id",

@@ -116,7 +116,7 @@ if __name__ == "__main__":
         print ("Output folder path   "+ folder_path)
     else:
         # xlsfilename = r"C:\SaskTel_Bisen\Development\Data_Migration\config\Action Item-Structure ToBe Model.xlsx"
-        xlsfilename = r"C:\SaskTel_Bisen\Development\Data_Migration\config\Structures_1808.xlsx"
+        xlsfilename = r"C:\SaskTel_Bisen\Development\Data_Migration\config\2.Route.xlsx"
         folder_path = r'C:\\SaskTel_Bisen\\Development\\Data_Migration\\config\\'
 
     if not os.path.exists(folder_path):
@@ -152,7 +152,7 @@ if __name__ == "__main__":
     
 
 
-    #python export_config.py "C:\SaskTel_Bisen\Development\Data_Migration\config\1. Structures.xlsx", "C:\SaskTel_Bisen\Development\Data_Migration\config\"                    
+    #python export_config.py "C:\SaskTel_Bisen\Development\Data_Migration\config\2.Route (2).xlsx", "C:\SaskTel_Bisen\Development\Data_Migration\config\"                    
         
 
          

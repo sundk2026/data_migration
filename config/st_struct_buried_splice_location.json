@@ -7,7 +7,7 @@
     "Track_Changes": "yes",
     "Versioned": "Yes",
     "Editable": "Yes",
-    "NE_Table": "Structure1_WGS84",
+    "NE_Table": "STRUCTURE",
     "Geometry": "shape",
     "Source_ID": "object_id",
     "UUID": "uuid",
@@ -210,6 +210,20 @@
             "Join": ""
         },
         {
+            "Field_Name": "last_workorder_name",
+            "Display": "Last Work Order Name",
+            "Type": "",
+            "Field_Type": "string(20)",
+            "Field_Length": "",
+            "FieldSource": "IQGeo",
+            "ReplaceValue": "",
+            "Mandatory": "Yes",
+            "defaultvalue": "",
+            "DomainValue": "",
+            "Source": "",
+            "Join": ""
+        },
+        {
             "Field_Name": "st_std_desc",
             "Display": "Standard Description",
             "Type": "",
@@ -322,20 +336,6 @@
             "Join": ""
         },
         {
-            "Field_Name": "st_trmnl_id",
-            "Display": "Terminal Identifier",
-            "Type": "",
-            "Field_Type": "string(20)",
-            "Field_Length": "",
-            "FieldSource": "NE",
-            "ReplaceValue": "",
-            "Mandatory": "No",
-            "defaultvalue": "",
-            "DomainValue": "",
-            "Source": "",
-            "Join": ""
-        },
-        {
             "Field_Name": "sap_pm_order",
             "Display": "SAP PM Order",
             "Type": "",
@@ -347,20 +347,6 @@
             "defaultvalue": "",
             "DomainValue": "",
             "Source": "st_sap_ntwk_id",
-            "Join": ""
-        },
-        {
-            "Field_Name": "st_fbr_grnd_pnt_ind",
-            "Display": "Sasktel Fiber Ground Point Indicator",
-            "Type": "",
-            "Field_Type": "string(10)",
-            "Field_Length": "",
-            "FieldSource": "NE",
-            "ReplaceValue": "",
-            "Mandatory": "No",
-            "defaultvalue": "",
-            "DomainValue": "",
-            "Source": "",
             "Join": ""
         },
         {
@@ -505,9 +491,9 @@
         },
         {
             "Field_Name": "Closure type: Closure",
-            "Display": "Need to discuss cases",
+            "Display": "Need to discuss cases. only 3 record\n1 can be deleted 2 can be migrated to Buried splice Location.SaskTel shall confirm",
             "Type": "",
-            "Field_Type": "only 3 record\n1 can be deleted 2 can be migrated to Buried splice Location.SaskTel shall confirm",
+            "Field_Type": "",
             "Field_Length": "",
             "FieldSource": "",
             "ReplaceValue": "",
