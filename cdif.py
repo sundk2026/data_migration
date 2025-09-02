@@ -40,7 +40,6 @@ class IQGeoCDIF:
         self._create_design_metadata()
 
     def _create_folder_for_cdif(self):
-         
         logging.info(f"Creating folder for CDIF | '{self.folder_path}'")
         try:
             if not os.path.exists(self.folder_path):
@@ -48,9 +47,8 @@ class IQGeoCDIF:
         except:
             logging.error(str(datetime.now())+" | "+"ERROR IN Creating folder | "+self.folder_path)
         return
-        
+    
     def _create_design_metadata(self):
-
         self.packagemetadata_file_name=self.rootDirectory +"\\package.metadata"
         logging.info(f"Creating Package metadata file | '{self.packagemetadata_file_name}'")
         
@@ -408,10 +406,13 @@ class IQGeoCDIF:
          
         conn = sqlite3.connect(sqlite_path)
         cur = conn.cursor()
-        create_sql = f"CREATE TABLE IF NOT EXISTS route_geom (str_hash TEXT, geom TEXT, lngth REAL , no_vertex INTEGER , obj_id TEXT, from_str_id TEXt, to_str_id TEXT, from_str_type TEXt, to_str_type TEXT, span_type TEXT,in_str_name TEXT,out_str_name TEXT);"
+        create_sql = f"CREATE TABLE IF NOT EXISTS route_geom (str_hash TEXT, geom TEXT, lngth REAL , no_vertex INTEGER , obj_id TEXT, from_str_id TEXt, to_str_id TEXT, from_str_type TEXt, to_str_type TEXT, span_type TEXT,in_str_name TEXT,out_str_name TEXT, is_active TEXT);"
         cur.execute(create_sql)
         create_sql = f"CREATE INDEX idx_str_hash ON route_geom (str_hash);"
         cur.execute(create_sql)
+
+
+         
 
         csv_data=[]
         conduit_data=[]
@@ -517,35 +518,34 @@ class IQGeoCDIF:
             if db_type_issue==True :
                 self.records_skipped_due_to_issue+=1
             		
-            
+            lengths = str_geom.length
+            v_n=  len(str_geom.geoms[0].coords)
+            FROM_STRUCTURE_NAME=row["FROM_STRUCTURE_NAME"]
+            TO_STRUCTURE_NAME=row["TO_STRUCTURE_NAME"]
+            if frm_str_obj_id>to_str_obj_id:
+                str_key=frm_str_obj_id+'|'+to_str_obj_id
+            else:
+                str_key=to_str_obj_id +'|'+frm_str_obj_id
+
             if row["TYPE_NAME"] in  ['BURIED', 'FLOOR SPAN', 'FOREIGN BURIED','FORMATION','RISER','TROUGH','TUNNEL']:
                 csv_data.append(csv_row)
-                FROM_STRUCTURE_NAME=row["FROM_STRUCTURE_NAME"]
-                TO_STRUCTURE_NAME=row["TO_STRUCTURE_NAME"]
-
-                   
-
-                if frm_str_obj_id>to_str_obj_id:
-                    str_key=frm_str_obj_id+'|'+to_str_obj_id
-                else:
-                    str_key=to_str_obj_id +'|'+frm_str_obj_id
                 
-                lengths = str_geom.length
-                v_n=  len(str_geom.geoms[0].coords)
+                
+              
                 # cur.execute("INSERT INTO route_geom (str_hash , geom , lngth , no_vertex , obj_id , from_str_id , to_str_id , from_str_type , to_str_type , span_type ,in_str_name ,out_str_name  ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",(str_key,geom_wkb,lengths ,v_n ,iqgeo_ref_id_val, row['instr_object_id'],row['outstr_object_id'], row['INSTR_TYPE_NAME'],row['OUTSTR_TYPE_NAME'],row["TYPE_NAME"],FROM_STRUCTURE_NAME,TO_STRUCTURE_NAME ))
-                cur.execute("INSERT INTO route_geom (str_hash , geom , lngth , no_vertex , obj_id , from_str_id , to_str_id , from_str_type , to_str_type , span_type ,in_str_name ,out_str_name  ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",(str_key,geom_wkb,lengths ,v_n ,iqgeo_ref_id_val, frm_str_obj_id,to_str_obj_id, row['INSTR_TYPE_NAME'],row['OUTSTR_TYPE_NAME'],row["TYPE_NAME"],FROM_STRUCTURE_NAME,TO_STRUCTURE_NAME ))
+                cur.execute("INSERT INTO route_geom (str_hash , geom , lngth , no_vertex , obj_id , from_str_id , to_str_id , from_str_type , to_str_type , span_type ,in_str_name ,out_str_name ,is_active ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",(str_key,geom_wkb,lengths ,v_n ,iqgeo_ref_id_val, frm_str_obj_id,to_str_obj_id, row['INSTR_TYPE_NAME'],row['OUTSTR_TYPE_NAME'],row["TYPE_NAME"],FROM_STRUCTURE_NAME,TO_STRUCTURE_NAME ,'Y'))
 
                 
                 
             if row["TYPE_NAME"] == 'MESSENGER' :
-                FROM_STRUCTURE_NAME=row["FROM_STRUCTURE_NAME"]
-                TO_STRUCTURE_NAME=row["TO_STRUCTURE_NAME"]
-                # frm_str_obj_id = row['instr_object_id']
-                # to_str_obj_id = row['outstr_object_id']
-                if frm_str_obj_id>to_str_obj_id:
-                    str_key=frm_str_obj_id+'|'+to_str_obj_id
-                else:
-                    str_key=to_str_obj_id +'|'+frm_str_obj_id
+                # FROM_STRUCTURE_NAME=row["FROM_STRUCTURE_NAME"]
+                # TO_STRUCTURE_NAME=row["TO_STRUCTURE_NAME"]
+                # # frm_str_obj_id = row['instr_object_id']
+                # # to_str_obj_id = row['outstr_object_id']
+                # if frm_str_obj_id>to_str_obj_id:
+                #     str_key=frm_str_obj_id+'|'+to_str_obj_id
+                # else:
+                #     str_key=to_str_obj_id +'|'+frm_str_obj_id
                 
                 query = f"select obj_id, from_str_id, to_str_id , str_hash,geom from route_geom rg  where str_hash= '{str_key}'"
                 cur.execute(query )
@@ -553,16 +553,23 @@ class IQGeoCDIF:
                 if msngr_results:
                      self.bypassed_data.append([iqgeo_ref_id_val,'Messenger Route already created',FROM_STRUCTURE_NAME + ' TO ' + TO_STRUCTURE_NAME])
                 else:                    
-                    lengths = str_geom.length
-                    v_n=  len(str_geom.geoms[0].coords)
-                    cur.execute("INSERT INTO route_geom (str_hash , geom , lngth , no_vertex , obj_id , from_str_id , to_str_id , from_str_type , to_str_type , span_type ,in_str_name ,out_str_name  ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",(str_key,geom_wkb,lengths ,v_n ,iqgeo_ref_id_val, frm_str_obj_id,to_str_obj_id, row['INSTR_TYPE_NAME'],row['OUTSTR_TYPE_NAME'],row["TYPE_NAME"],FROM_STRUCTURE_NAME,TO_STRUCTURE_NAME ))
+                    # lengths = str_geom.length
+                    # v_n=  len(str_geom.geoms[0].coords)
+                    cur.execute("INSERT INTO route_geom (str_hash , geom , lngth , no_vertex , obj_id , from_str_id , to_str_id , from_str_type , to_str_type , span_type ,in_str_name ,out_str_name ,is_active ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",(str_key,geom_wkb,lengths ,v_n ,iqgeo_ref_id_val, frm_str_obj_id,to_str_obj_id, row['INSTR_TYPE_NAME'],row['OUTSTR_TYPE_NAME'],row["TYPE_NAME"],FROM_STRUCTURE_NAME,TO_STRUCTURE_NAME ,'Y'))
                     csv_data.append(csv_row)
                 
             if row["TYPE_NAME"] =='CONDUIT':
                 conduit_data.append(csv_row)
+                # lengths = str_geom.length
+                # v_n=  len(str_geom.geoms[0].coords)
+                cur.execute("INSERT INTO route_geom (str_hash , geom , lngth , no_vertex , obj_id , from_str_id , to_str_id , from_str_type , to_str_type , span_type ,in_str_name ,out_str_name ,is_active ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",(str_key,geom_wkb,lengths ,v_n ,iqgeo_ref_id_val, frm_str_obj_id,to_str_obj_id, row['INSTR_TYPE_NAME'],row['OUTSTR_TYPE_NAME'],row["TYPE_NAME"],FROM_STRUCTURE_NAME,TO_STRUCTURE_NAME,'N' ))
+
+
                 # print('bypassing conduit for time being')
             if row["TYPE_NAME"] == 'CORE HOLE':
                 corehole_data.append(csv_row)
+                cur.execute("INSERT INTO route_geom (str_hash , geom , lngth , no_vertex , obj_id , from_str_id , to_str_id , from_str_type , to_str_type , span_type ,in_str_name ,out_str_name ,is_active ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",(str_key,geom_wkb,lengths ,v_n ,iqgeo_ref_id_val, frm_str_obj_id,to_str_obj_id, row['INSTR_TYPE_NAME'],row['OUTSTR_TYPE_NAME'],row["TYPE_NAME"],FROM_STRUCTURE_NAME,TO_STRUCTURE_NAME ,'N'))
+
             # if row["TYPE_NAME"] == 'MESSENGER':
                 
 
@@ -575,6 +582,9 @@ class IQGeoCDIF:
 
         clidx=0
         nm_idx=-1
+        frm_str_type_id = -1
+        to_str_type_id = -1
+
         if frm_str_fld_indx== -1 or to_str_fld_indx==-1 :
             for cl in clm_name:
                 if cl=='in_structure':frm_str_fld_indx= clidx
@@ -586,6 +596,18 @@ class IQGeoCDIF:
 
         if len(conduit_data)>0:
             print('Conduit data processing')
+# str_key,
+# geom_wkb,
+# lengths ,
+# v_n 
+# iqgeo_ref_id_val
+#  frm_str_obj_id
+# to_str_obj_id
+#  row['INSTR_TYPE_NAME']
+# row['OUTSTR_TYPE_NAME']
+# row["TYPE_NAME"]
+# FROM_STRUCTURE_NAME
+# TO_STRUCTURE_NAME 
 
             for conduit_rw in conduit_data:
                 FROM_STRUCTURE_NAME=conduit_rw[frm_str_fld_indx]
@@ -615,7 +637,10 @@ class IQGeoCDIF:
                     # for row in found_data:
                     #     print(row)
                 else:
-                    cur.execute("INSERT INTO route_geom (str_hash, geom, lngth , no_vertex , obj_id) VALUES (?,?,?,?,?)",(str_key,'',0 ,0 ,iqgeo_ref_id_val))
+                    # cur.execute("INSERT INTO route_geom (str_hash, geom, lngth , no_vertex , obj_id) VALUES (?,?,?,?,?)",(str_key,'',0 ,0 ,iqgeo_ref_id_val))
+
+                    # cur.execute("INSERT INTO route_geom (str_hash , geom ,  obj_id , from_str_id , to_str_id , span_type  ) VALUES (?,?,?,?,?,?)",(str_key,geom_wkb, id_val, FROM_STRUCTURE_NAME,TO_STRUCTURE_NAME,  'CONDUIT'))
+                    cur.execute(f"Update route_geom set is_active = 'Y' where str_hash = '{str_key}'")
                     conn.commit()
                     csv_data.append(conduit_rw)     
         if len(corehole_data)>0:
@@ -629,7 +654,7 @@ class IQGeoCDIF:
                 else:
                     str_key=TO_STRUCTURE_NAME +'|'+FROM_STRUCTURE_NAME
 
-                query = f"SELECT str_hash , obj_id, from_str_id, to_str_id FROM  route_geom WHERE (from_str_id = '{FROM_STRUCTURE_NAME}' or to_str_id = '{TO_STRUCTURE_NAME}' or to_str_id  = '{FROM_STRUCTURE_NAME}' or from_str_id = '{TO_STRUCTURE_NAME}' ) AND (span_type = 'BURIED' or span_type ='FOREIGN BURIED' )AND ( from_str_type  ='SPAN JUNCTION' OR to_str_type ='SPAN JUNCTION') "
+                query = f"SELECT str_hash , obj_id, from_str_id, to_str_id FROM  route_geom WHERE is_active= 'Y' and (from_str_id = '{FROM_STRUCTURE_NAME}' or to_str_id = '{TO_STRUCTURE_NAME}' or to_str_id  = '{FROM_STRUCTURE_NAME}' or from_str_id = '{TO_STRUCTURE_NAME}' ) AND (span_type = 'BURIED' or span_type ='FOREIGN BURIED' or span_type ='CONDUIT' )AND ( from_str_type  ='SPAN JUNCTION' OR to_str_type ='SPAN JUNCTION') "
               
                 cur.execute(query )
                 results = cur.fetchall()
@@ -662,7 +687,7 @@ class IQGeoCDIF:
         conn.commit()
         conn.close()
         try:
-            os.remove(sqlite_path)
+            # os.remove(sqlite_path)
             print('Removing db file')
         except Exception as ex:
             print(f"Unable to delete temp db  file {sqlite_path}")

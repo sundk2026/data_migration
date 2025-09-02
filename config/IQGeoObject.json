@@ -1,0 +1,17 @@
+
+ {    "sasktel_oh_route": "route" ,
+     "sasktel_ug_route": "route" ,
+     "sasktel_isp_route": "route" ,
+     "Vault": "structure" ,
+     "sasktel_cabinet": "structure" ,
+     "sasktel_pedestal": "structure" ,
+     "sasktel_closure": "structure" ,
+     "sasktel_pole": "structure" ,
+     "sasktel_building": "structure" ,
+     "sasktel_span_junction": "structure" ,
+     "sasktel_tower": "structure" ,
+     "sasktel_pole_anchor": "structure" ,
+     "sasktel_midspan": "structure" ,
+     "sasktel_conduit": "conduit" ,
+     "sasktel_messenger": "messenger" ,
+     "sasktel_innerduct": "innderduct"  }

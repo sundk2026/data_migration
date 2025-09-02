@@ -91,12 +91,12 @@ if __name__ == "__main__":
         output_folder = sys.argv[3]
     else:
         fgdb_path=r'C:\SaskTel_Bisen\SaskTelData\ReginaS84\ReginaS84.gdb'
-        file_config=r'C:\SaskTel_Bisen\Development\Data_Migration\config\st_struct_route_junction.json'
+        file_config=r'C:\SaskTel_Bisen\Development\Data_Migration\config\sasktel_ug_route.json'
         # C:\SaskTel_Bisen\Development\Data_Migration\config\st_struct_pole.json
         # file_config=r'C:\SaskTel_Bisen\Development\Data_Migration\config\vault.json'
 
-        output_folder = "structures"
-        # output_folder = "route"
+        # output_folder = "structures"
+        output_folder = "route"
 
         # pole_config= r"C:\SaskTel_Bisen\Development\Data_Migration\config\pole.json"
 

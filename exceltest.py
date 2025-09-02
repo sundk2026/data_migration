@@ -65,3 +65,8 @@ if __name__ == "__main__":
         # conn.close()
 
     print("hai")
+    with open('C:\\SaskTel_Bisen\\Development\\Data_Migration\\config\\IQGeoObject.json', 'r') as f:
+        data = json.load(f)
+        print(data)
+
+    
