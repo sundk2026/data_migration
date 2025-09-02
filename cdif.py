@@ -964,9 +964,7 @@ class IQGeoCDIF:
                     if row[0] == crw[0]  :
                         row[1]=shortest_geom
                         break
-            
             last_str_hash=cur_str_hash
-        
         return csv_data
             
     def _UpdateBuriedSpanGeomByMergeCoreHole(self,csv_data,insert_vertices_at,ch_span_geom , buried_span_id_to_update_geom,ch_span_id ,FROM_STRUCTURE_NAME,TO_STRUCTURE_NAME):
