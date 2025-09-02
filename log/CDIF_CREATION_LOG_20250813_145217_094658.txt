@@ -1,7 +1,0 @@
-2025-08-13 14:52:17,096 - INFO - 2025-08-13 14:52:17.094658 |  ********** CDIF CREATION TASK STARTED ********** 
-2025-08-13 14:52:17,096 - INFO - 2025-08-13 14:52:17.096673 | Creating folder | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\
-2025-08-13 14:52:17,098 - INFO - 2025-08-13 14:52:17.098698 | Creating field mapping file | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\building.fields
-2025-08-13 14:52:17,098 - INFO - 2025-08-13 14:52:17.098698 | Creating field mapping file completed for | building
-2025-08-13 14:52:17,100 - INFO - 2025-08-13 14:52:17.100715 |  creating CSV for manhole in | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\\building.csv
-2025-08-13 14:52:17,211 - ERROR - 2025-08-13 14:52:17.211702 | Error occured in  CSV  file :  Layer 'Structure_project' could not be opened| C:\SaskTel_Bisen\Development\Data_Migration\output\structures\\building.csv
-2025-08-13 14:52:17,212 - INFO - 2025-08-13 14:52:17.212731 |  ********** CDIF CREATION TASK FINISHED ********** 

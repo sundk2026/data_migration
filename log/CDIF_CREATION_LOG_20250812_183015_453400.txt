@@ -1,7 +1,0 @@
-2025-08-12 18:30:15,455 - INFO - 2025-08-12 18:30:15.455415 |  ********** CDIF CREATION TASK STARTED ********** 
-2025-08-12 18:30:15,457 - INFO - 2025-08-12 18:30:15.457440 | Creating folder | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\
-2025-08-12 18:30:15,457 - INFO - 2025-08-12 18:30:15.457440 | Creating field mapping file | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\building.fields
-2025-08-12 18:30:15,459 - INFO - 2025-08-12 18:30:15.459456 | Creating field mapping file completed for | building
-2025-08-12 18:30:15,459 - INFO - 2025-08-12 18:30:15.459456 |  creating CSV for manhole in | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\\building.csv
-2025-08-12 18:31:11,655 - ERROR - 2025-08-12 18:31:11.655820 | Error occured in  CSV  file :  'NoneType' object has no attribute 'strip'| C:\SaskTel_Bisen\Development\Data_Migration\output\structures\\building.csv
-2025-08-12 18:31:12,603 - INFO - 2025-08-12 18:31:12.603300 |  ********** CDIF CREATION TASK FINISHED ********** 

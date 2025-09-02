@@ -1,7 +1,0 @@
-2025-08-01 17:22:14,803 - INFO - 2025-08-01 17:22:14.803806 |  ********** CDIF CREATION TASK STARTED ********** 
-2025-08-01 17:22:14,805 - INFO - 2025-08-01 17:22:14.805863 | Creating folder | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\
-2025-08-01 17:22:14,805 - INFO - 2025-08-01 17:22:14.805863 | Creating field mapping file | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\vault.fields
-2025-08-01 17:22:14,807 - INFO - 2025-08-01 17:22:14.807907 | Creating field mapping file completed for | vault
-2025-08-01 17:22:14,808 - INFO - 2025-08-01 17:22:14.808926 |  creating CSV for manhole in | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\\vault.csv
-2025-08-01 17:23:19,357 - ERROR - 2025-08-01 17:23:19.357588 | Error occured in  CSV  file :  "(CATEGORY_NAME = 'CLOSURE' and TYPE_NAME ='PULLBOX') or CATEGORY_NAME = 'VAULT' OR CATEGORY_NAME = 'FTTX'"| C:\SaskTel_Bisen\Development\Data_Migration\output\structures\\vault.csv
-2025-08-01 17:23:20,035 - INFO - 2025-08-01 17:23:20.034410 |  ********** CDIF CREATION TASK FINISHED ********** 

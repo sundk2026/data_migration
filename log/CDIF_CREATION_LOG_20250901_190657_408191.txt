@@ -1,7 +1,0 @@
-2025-09-01 19:06:57,410 - INFO - 2025-09-01 19:06:57.410215 |  ********** CDIF CREATION TASK STARTED ********** 
-2025-09-01 19:06:57,412 - INFO - Creating folder for CDIF | 'C:\SaskTel_Bisen\Development\Data_Migration\output\route'
-2025-09-01 19:06:57,412 - INFO - Creating Package metadata file | 'C:\SaskTel_Bisen\Development\Data_Migration\output\\package.metadata'
-2025-09-01 19:06:57,415 - INFO - Package metadata written sucessfully.'C:\SaskTel_Bisen\Development\Data_Migration\output\\package.metadata'
-2025-09-01 19:06:57,416 - INFO - Creating field mapping file  'C:\SaskTel_Bisen\Development\Data_Migration\output\route\sasktel_ug_route.fields' for object sasktel_ug_route 
-2025-09-01 19:06:57,417 - INFO - Loading configuration JSON file  'C:\SaskTel_Bisen\Development\Data_Migration\config\sasktel_ug_route.json' 
-2025-09-01 19:06:57,418 - INFO - Creating field mapping file completed for 'sasktel_ug_route'

@@ -1,7 +1,0 @@
-2025-07-31 16:37:40,579 - INFO - 2025-07-31 16:37:40.579987 |  ********** CDIF CREATION TASK STARTED ********** 
-2025-07-31 16:37:49,820 - INFO - 2025-07-31 16:37:49.820163 | Creating folder | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\
-2025-07-31 16:37:49,822 - INFO - 2025-07-31 16:37:49.822425 | Creating field mapping file | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\pole.fields
-2025-07-31 16:37:49,825 - INFO - 2025-07-31 16:37:49.825496 | Creating field mapping file completed for | pole
-2025-07-31 16:37:49,825 - INFO - 2025-07-31 16:37:49.825496 |  creating CSV for manhole in | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\\pole.csv
-2025-07-31 16:38:51,702 - ERROR - 2025-07-31 16:38:51.702536 | Error occured in  CSV  file :  'Category'| C:\SaskTel_Bisen\Development\Data_Migration\output\structures\\pole.csv
-2025-07-31 16:38:52,444 - INFO - 2025-07-31 16:38:52.444653 |  ********** CDIF CREATION TASK FINISHED ********** 

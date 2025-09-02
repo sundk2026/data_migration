@@ -1,8 +1,0 @@
-2025-08-29 22:01:00,123 - INFO - 2025-08-29 22:01:00.123737 |  ********** CDIF CREATION TASK STARTED ********** 
-2025-08-29 22:01:00,125 - INFO - Creating folder for CDIF | 'C:\SaskTel_Bisen\Development\Data_Migration\output\structures'
-2025-08-29 22:01:00,125 - INFO - Creating Package metadata file | 'C:\SaskTel_Bisen\Development\Data_Migration\output\\package.metadata'
-2025-08-29 22:01:00,128 - INFO - Package metadata written sucessfully.'C:\SaskTel_Bisen\Development\Data_Migration\output\\package.metadata'
-2025-08-29 22:01:00,129 - INFO - Creating field mapping file  'C:\SaskTel_Bisen\Development\Data_Migration\output\structures\st_struct_pedestal.fields' for object st_struct_pedestal 
-2025-08-29 22:01:00,130 - INFO - Loading configuration JSON file  'C:\SaskTel_Bisen\Development\Data_Migration\config\st_struct_pedestal.json' 
-2025-08-29 22:01:00,131 - INFO - Creating field mapping file completed for 'st_struct_pedestal'
-2025-08-29 22:01:00,167 - INFO - 2025-08-29 22:01:00.167421 |  ********** CDIF CREATION TASK FINISHED ********** 

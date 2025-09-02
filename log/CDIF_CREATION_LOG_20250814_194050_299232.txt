@@ -1,4 +1,0 @@
-2025-08-14 19:40:50,301 - INFO - 2025-08-14 19:40:50.301566 |  ********** CDIF CREATION TASK STARTED ********** 
-2025-08-14 19:41:04,642 - INFO - Creating folder for CDIF | 'C:\SaskTel_Bisen\Development\Data_Migration\output\route'
-2025-08-14 19:41:04,644 - INFO - Creating Package metadata file | 'C:\SaskTel_Bisen\Development\Data_Migration\output\\package.metadata'
-2025-08-14 19:41:04,647 - INFO - Package metadata written sucessfully.'C:\SaskTel_Bisen\Development\Data_Migration\output\\package.metadata'

@@ -1,7 +1,0 @@
-2025-08-28 17:19:09,667 - INFO - 2025-08-28 17:19:09.667979 |  ********** CDIF CREATION TASK STARTED ********** 
-2025-08-28 17:19:09,670 - INFO - Creating folder for CDIF | 'C:\SaskTel_Bisen\Development\Data_Migration\output\structures'
-2025-08-28 17:19:09,670 - INFO - Creating Package metadata file | 'C:\SaskTel_Bisen\Development\Data_Migration\output\\package.metadata'
-2025-08-28 17:19:09,671 - INFO - Package metadata written sucessfully.'C:\SaskTel_Bisen\Development\Data_Migration\output\\package.metadata'
-2025-08-28 17:19:09,673 - INFO - Creating field mapping file  'C:\SaskTel_Bisen\Development\Data_Migration\output\structures\st_anchor.fields' for object st_anchor 
-2025-08-28 17:19:09,673 - INFO - Loading configuration JSON file  'C:\SaskTel_Bisen\Development\Data_Migration\config\st_anchor.json' 
-2025-08-28 17:19:09,674 - INFO - Creating field mapping file completed for 'st_anchor'

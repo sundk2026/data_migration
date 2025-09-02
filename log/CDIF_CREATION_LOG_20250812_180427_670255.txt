@@ -1,7 +1,0 @@
-2025-08-12 18:04:27,672 - INFO - 2025-08-12 18:04:27.672273 |  ********** CDIF CREATION TASK STARTED ********** 
-2025-08-12 18:04:27,689 - INFO - 2025-08-12 18:04:27.689940 | Creating folder | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\
-2025-08-12 18:04:27,690 - INFO - 2025-08-12 18:04:27.690967 | Creating field mapping file | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\building.fields
-2025-08-12 18:04:27,694 - INFO - 2025-08-12 18:04:27.694211 | Creating field mapping file completed for | building
-2025-08-12 18:04:27,694 - INFO - 2025-08-12 18:04:27.694211 |  creating CSV for manhole in | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\\building.csv
-2025-08-12 18:09:46,558 - ERROR - 2025-08-12 18:09:46.558508 | Error occured in  CSV  file :  unsupported operand type(s) for &: 'str' and 'int'| C:\SaskTel_Bisen\Development\Data_Migration\output\structures\\building.csv
-2025-08-12 18:09:48,028 - INFO - 2025-08-12 18:09:48.028035 |  ********** CDIF CREATION TASK FINISHED ********** 

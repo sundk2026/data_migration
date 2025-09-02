@@ -1,3 +1,0 @@
-2025-08-12 16:00:34,596 - INFO - 2025-08-12 16:00:34.596569 |  ********** CDIF CREATION TASK STARTED ********** 
-2025-08-12 16:00:34,598 - INFO - 2025-08-12 16:00:34.598590 | Creating folder | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\
-2025-08-12 16:00:34,600 - INFO - 2025-08-12 16:00:34.600611 | Creating field mapping file | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\building.fields

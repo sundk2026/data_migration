@@ -1,7 +1,0 @@
-2025-07-31 21:17:05,662 - INFO - 2025-07-31 21:17:05.662951 |  ********** CDIF CREATION TASK STARTED ********** 
-2025-07-31 21:17:05,662 - INFO - 2025-07-31 21:17:05.662951 | Creating folder | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\
-2025-07-31 21:17:05,662 - INFO - 2025-07-31 21:17:05.662951 | Creating field mapping file | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\pole.fields
-2025-07-31 21:17:05,664 - INFO - 2025-07-31 21:17:05.664973 | Creating field mapping file completed for | pole
-2025-07-31 21:17:05,664 - INFO - 2025-07-31 21:17:05.664973 |  creating CSV for manhole in | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\\pole.csv
-2025-07-31 21:18:03,892 - ERROR - 2025-07-31 21:18:03.892912 | Error occured in  CSV  file :  can only concatenate str (not "int") to str| C:\SaskTel_Bisen\Development\Data_Migration\output\structures\\pole.csv
-2025-07-31 21:18:04,764 - INFO - 2025-07-31 21:18:04.764714 |  ********** CDIF CREATION TASK FINISHED ********** 

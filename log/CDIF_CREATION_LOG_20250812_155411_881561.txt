@@ -1,5 +1,0 @@
-2025-08-12 15:54:11,883 - INFO - 2025-08-12 15:54:11.882589 |  ********** CDIF CREATION TASK STARTED ********** 
-2025-08-12 15:54:11,884 - INFO - 2025-08-12 15:54:11.884656 | Creating folder | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\
-2025-08-12 15:54:11,885 - INFO - 2025-08-12 15:54:11.885680 | Creating field mapping file | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\building.fields
-2025-08-12 15:54:11,886 - ERROR - 2025-08-12 15:54:11.885680 | Error occured in create field mapping file : {str(e)} | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\building.fields
-2025-08-12 15:54:11,886 - INFO - 2025-08-12 15:54:11.886707 |  creating CSV for manhole in | C:\SaskTel_Bisen\Development\Data_Migration\output\structures\\building.csv
