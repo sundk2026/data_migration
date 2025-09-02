@@ -439,7 +439,7 @@ class IQGeoCDIF:
             
              
             idval=re.sub(r'[^0-9a-zA-Z]', '', row[uqfld])
-            if str(row[uqfld])=="{F7881B93-DA6D-44D7-A9C3-D99E4312CFDF}":
+            if str(row[uqfld])=="{D17A76E0-6D64-4B25-96A2-46C2E3371FCD}":
                 idval=row[uqfld]
                 idval=re.sub(r'[^0-9a-zA-Z]', '', row[uqfld])
 
@@ -613,12 +613,15 @@ class IQGeoCDIF:
                 FROM_STRUCTURE_NAME=conduit_rw[frm_str_fld_indx]
                 TO_STRUCTURE_NAME=conduit_rw[to_str_fld_indx]
                 id_val=conduit_rw[0]
+                if id_val=='SPAND17A76E06D644B2596A246C2E3371FCD':
+                    print ("reaching")
+
                 if FROM_STRUCTURE_NAME>TO_STRUCTURE_NAME:
                     str_key=FROM_STRUCTURE_NAME+'|'+TO_STRUCTURE_NAME
                 else:
                     str_key=TO_STRUCTURE_NAME +'|'+FROM_STRUCTURE_NAME
                 
-                query = f"SELECT str_hash , obj_id FROM  route_geom WHERE str_hash = '{str_key}' "
+                query = f"SELECT str_hash , obj_id FROM  route_geom WHERE is_active= 'Y' and  str_hash = '{str_key}' "
             #     if conduit_rw[0]=='SPAN_REG16/376953':
             #         print (query)
             # # Execute the query with the search value as a parameter
@@ -683,11 +686,11 @@ class IQGeoCDIF:
                         # print (buried_span_id_to_update_geom)
                 else:
                     self.core_hole_merged.append(['CORE HOLE IGNORED',corehole_rw[0], FROM_STRUCTURE_NAME,TO_STRUCTURE_NAME,''])
-    
+
         conn.commit()
         conn.close()
         try:
-            # os.remove(sqlite_path)
+            os.remove(sqlite_path)
             print('Removing db file')
         except Exception as ex:
             print(f"Unable to delete temp db  file {sqlite_path}")
