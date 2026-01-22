@@ -1,0 +1,14 @@
+{
+    "api_url":"http://localhost:8080/modules/custom/telcorefmapping?application=comms_custom_sasktel&lang=en-US%22",
+    "api_data" :{
+        "design_id": "design/Swift_Current_Data",
+        "req_mode": "connection"
+    },
+    "api_headers" : {
+        "Referer": "http://localhost:8080/",
+        "X-CSRF-Token": "ea6b3d2937c844d308de8eff54a6de90fa71319e95af276923667a4cf173b550"
+    },
+    "api_cookies": {
+        "myworldapp": "p4zd7RU0t-x4N2vYmop_w86C2eRptDxvhZhjEakm-Sjp1Z3-_C18vac1flP7ipjRrdf-lKriYtOCyfNH6tiIOG81Xzh2SGxIRzRHY2ZRWHdHaGhNX1pxelBrYUJpOGJ0TWkzRnFJZG1qMjh3NHhtdDNZRUlpZXpFMmM5eHNKbUk"
+    }
+}
