@@ -2,16 +2,27 @@ import sqlite3, os, oracledb, csv, zipfile
 import pandas as pd
 from  util_services import UTILServices 
 import find_nearby_segment, pdf_generator
+from tqdm import tqdm
+from datetime import datetime
+import time, json, requests
+from openpyxl import load_workbook
+from openpyxl.styles import Font, Alignment,PatternFill
 
 
 class Connection():
     def __init__(self):
+        self.start_time = time.time()
         self.input_gdb = r"C:\Kishore\SaskTel_Bisen\kranthi\gdb\SIMPLE_TELCO_Jan07exchange.gdb"
-        self.region="Swift Current"
-        self.iqgeo_csv = r"C:\Kishore\SaskTel_Bisen\output\connection_data_swift.csv"
+        self.region_data = {"design/Regina_North_South_Data":"Regina",
+                            "design/Swift_Current_Data":"Swift_Current"}
+        # self.region="Regina"
+        # self.iqgeo_csv = r"C:\Kishore\SaskTel_Bisen\output\uat_reg_connection_20jan.csv"
         self.source_csv_path =  r"C:\Kishore\SaskTel_Bisen\output"
         # self.segment_data_csv = r"C:\Kishore\SaskTel_Bisen\output\connection_csv_06.csv"
-        self.iqgeo_csv_df = pd.read_csv(self.iqgeo_csv)
+        # self.iqgeo_csv_df = pd.read_csv(self.iqgeo_csv)
+        self.iqgeo_csv_df = self.get_ref_data()
+        self.iqgeo_csv_df = pd.DataFrame(self.iqgeo_csv_df)
+        self.iqgeo_csv_df['concat'] = self.iqgeo_csv_df['iqgeo_ref']
         # self.segment_data_df = pd.read_csv(self.segment_data_csv)
         self.ref_columns = ['in_object_name', 'out_object_name','in_object_classname','out_object_classname','connector_classname','connector_name']
         self.filtered_fields = ['myw_delta','id', 'in_object', 'out_object',
@@ -25,6 +36,47 @@ class Connection():
                                     ]
         self.set_sqlite()
 
+    def get_ref_data(self):
+        current_file_path = os.path.abspath(__file__)
+        current_dir = os.path.dirname(current_file_path)
+        with open(os.path.join(current_dir, "config\\connection_api_config.json"), "r") as f:
+                config = json.load(f)
+
+            # Extract values
+        api_url = config["api_url"]
+        api_data = config["api_data"]
+        api_headers = config["api_headers"]
+        self.region = self.region_data.get(config['api_data']['design_id'])
+        if self.region is None:
+            raise RuntimeError(f"Region has not been assigned kindly check")
+        api_cookies = config["api_cookies"]
+        try:
+            resp = requests.post(api_url, data=api_data, headers=api_headers, cookies=api_cookies, timeout=30)
+            resp.raise_for_status()
+            payload = resp.json()
+            if not payload.get("status", False):
+                raise RuntimeError(f"API returned error: {payload.get('message')}")
+            return payload.get("data")
+        except requests.exceptions.Timeout as e:
+        # Add context and re-raise
+            raise requests.exceptions.Timeout(f"Timeout calling {api_url}: {e}") from e
+        except requests.exceptions.ConnectionError as e:
+            raise requests.exceptions.ConnectionError(f"Connection error calling {api_url}: {e}") from e
+        except requests.exceptions.HTTPError as e:
+            status = e.response.status_code if e.response is not None else None
+            raise requests.exceptions.HTTPError(f"HTTP error {status} for {api_url}") from e
+        except requests.exceptions.RequestException as e:
+            # Catch-all for other request-related errors
+            raise
+        except ValueError as e:
+            # JSON decoding failed
+            raise ValueError(f"Invalid JSON from {api_url}: {e}") from e
+        finally:
+            # Ensure the response is closed to free the connection
+            print("API call done successfully")
+            if resp is not None:
+                resp.close()
+    
     def set_sqlite(self):
         if self.input_gdb.endswith(".gdb"):
             sqlite_db = self.input_gdb.replace(".gdb", ".sqlite")
@@ -56,12 +108,14 @@ class Connection():
             if  os.path.exists(file_path):
                 df_data = pd.read_csv(file_path)
             else:
+                print(f"Extraction of NE data to {file_path} is in Progress")
                 conn = oracledb.connect(user="SundK2", password="Sundk22$",
                                 dsn="sop-oradb-021.stholdco.com:1527/DBP463.STHOLDCO.COM")
                 cur = conn.cursor()
                 cur.execute(sql)
                 df_data = pd.read_sql(sql, conn)
                 df_data.to_csv(file_path)
+                print(f"Extraction of NE data to {file_path} is done")
 
                 cur.close()
                 conn.close()
@@ -248,6 +302,106 @@ class Connection():
         #     kept_only_duplicates.to_csv(os.path.join(self.csv_path_, dup_file_name), index=False)
         # fiber_filter_data = fiber_filter_data.drop_duplicates(subset=['in_object', 'out_object'], keep='first')
         return fiber_filter_data
+    
+    def summary_report(self,csv_file_name, report_data, cable_missing_data_df):
+        summary_path = os.path.join(csv_file_name, "summary")
+        if not os.path.exists(summary_path):
+            os.makedirs(summary_path ) 
+        excel_file_path = summary_path+'\\'+self.region+'_SummaryReport_'+"_"+datetime.now().strftime("%Y%m%d_%H%M%S")+".xlsx"
+        with pd.ExcelWriter(excel_file_path, engine='xlsxwriter') as writer:
+            cable_missing_data_df.to_excel(writer, sheet_name="Missing_Report", index=False)
+        
+        end_time = time.time()
+        elapsed_seconds = end_time - self.start_time
+        m, s = divmod(end_time-self.start_time, 60)
+        wb = load_workbook(excel_file_path)
+        ws_openpyxl = wb.create_sheet('Summary',0)
+        ws_openpyxl['A1'] = 'NE to IQGeo Connection Migartion Summary report' 
+        ws_openpyxl.merge_cells('A1:D1')
+        ws_openpyxl['A1'].font = Font(name='Arial', size=14, bold=True, color="FF0000") 
+        ws_openpyxl['A1'].alignment = Alignment(horizontal='center', vertical='center')
+        ws_openpyxl['A2'] = 'Summary for Area'
+        ws_openpyxl['A3'] = "Source Table"
+        ws_openpyxl['A4'] = "Date of Execution"
+        ws_openpyxl['A5'] = "Total Time Taken (min:sec)"
+        ws_openpyxl['A6'] = "NE Source FileGDB"
+        ws_openpyxl['A7'] = "Start Time"
+        ws_openpyxl['A8'] = "End Time"
+        ws_openpyxl['A9'] = ""
+        ws_openpyxl['A10'] = ""
+        ws_openpyxl['A11'] =self.region+" Data Summary"
+        ws_openpyxl.merge_cells('A11:D11')
+        ws_openpyxl['A11'].font = Font(bold=True)
+        ws_openpyxl['A11'].alignment  = Alignment(horizontal='center', vertical='center')
+        ws_openpyxl['A12'] ='Category'
+        ws_openpyxl['A12'].font = Font(bold=True)
+        ws_openpyxl['A13'] ='Equipment'
+        ws_openpyxl['A14'] ='Splice Closure'
+
+        ws_openpyxl['B2'] = self.region
+        ws_openpyxl['B3'] = "Ne.MV_CONNECTION"
+        ws_openpyxl['B4'] = datetime.now().strftime("%d\%m\%Y")
+        ws_openpyxl['B5'] = str(int(m)) + ":" + str(int(s))
+        ws_openpyxl['B6'] = self.input_gdb
+        ws_openpyxl['B7'] = datetime.fromtimestamp(self.start_time).strftime("%d-%b-%Y %H:%M:%S")
+        ws_openpyxl['B8'] = datetime.fromtimestamp(end_time).strftime("%d-%b-%Y %H:%M:%S")
+        ws_openpyxl['B9'] = ''
+        ws_openpyxl['B10'] = ''
+        ws_openpyxl['B12'] = 'Total data in NE'
+        ws_openpyxl['B12'].font = Font(bold=True)
+        ws_openpyxl['B13'] = report_data.get('NE_equipment_name')
+        ws_openpyxl['B14'] = report_data.get('NE_splice_name')
+
+        ws_openpyxl['c12'] = 'Connection data available in NE'
+        ws_openpyxl['c12'].font = Font(bold=True)
+        ws_openpyxl['c13'] = report_data.get('equipment_connection_tbl_row')
+        ws_openpyxl['c14'] = report_data.get('splice_connection_tbl_row')
+
+        ws_openpyxl['d12'] = 'Connection Migrated to IQGEO'
+        ws_openpyxl['d12'].font = Font(bold=True)
+        ws_openpyxl['d13'] = self.equipment_processed_data
+        ws_openpyxl['d14'] = self.splice_processed_data
+
+
+        ws_openpyxl['e12'] = 'Missing Connection in IQGEO'
+        ws_openpyxl['e12'].font = Font(bold=True)
+        ws_openpyxl['e13'] = self.equipment_unprocessed_data
+        ws_openpyxl['e14'] = self.splice_unprocessed_data
+
+
+        ws_openpyxl.column_dimensions['A'].width = 60
+        ws_openpyxl.column_dimensions['B'].width = 20
+        ws_openpyxl.column_dimensions['C'].width = 30
+        ws_openpyxl.column_dimensions['D'].width = 30
+        ws_openpyxl.column_dimensions['E'].width = 20
+        ws_openpyxl.column_dimensions['E'].width = 20
+        ws_openpyxl.column_dimensions['E'].width = 20
+
+        ws_openpyxl.merge_cells('B2:D2')
+        ws_openpyxl.merge_cells('B3:D3')
+        ws_openpyxl.merge_cells('B4:D4')
+        ws_openpyxl.merge_cells('B5:D5')
+        ws_openpyxl.merge_cells('B6:D6')
+        ws_openpyxl.merge_cells('B7:D7')
+        ws_openpyxl.merge_cells('B8:D8')
+        ws_openpyxl.merge_cells('B9:D9')
+        ws_openpyxl.merge_cells('B10:D10')
+        ws_openpyxl.merge_cells('B11:D11')
+
+        
+        wb.active = ws_openpyxl
+        print(excel_file_path,"---excel_file_path")
+        wb.save(excel_file_path)
+
+        # summary_data = [['Equipment',report_data.get('NE_equipment_name'), report_data.get('equipment_connection_tbl_row')],
+        #                 ['Splice Closure',report_data.get('NE_splice_name'), report_data.get('splice_connection_tbl_row')]]
+        # Summary_Report_sheet = pd.DataFrame(summary_data, columns=['Category','Total data in NE','Connection data available in NE'])
+        # end_time = time.time()
+        # elapsed_seconds = end_time - self.start_time
+        # with pd.ExcelWriter(excel_file_path, engine='xlsxwriter') as writer:
+        #     Summary_Report_sheet.to_excel(writer, sheet_name='Summary_Report', index=False)
+        #     cable_missing_data_df.to_excel(writer, sheet_name="Missing_Report", index=False)
+
 
     def ProcessCable(self):
         report_data = {}
@@ -266,10 +420,10 @@ class Connection():
         report_data.update({"region_splice_closure_name": len(region_splice_closure_name)})
         
         #200 - point
-        self.NE_equipment_df = self.get_NE_table_data(f"SELECT * FROM Ne.EQUIPMENT", "EQUIPMENT_DATA")
-        self.NE_splice_closure_df = self.get_NE_table_data(f"SELECT * FROM Ne.SPLICE_CLOSURE", "SPLICE_CLOSURE_DATA")
-        self.NE_connection_df = self.get_NE_table_data(f"SELECT * FROM Ne.CONNECTION", "CONNECTION_DATA")
-        self.NE_transmedia_df = self.get_NE_table_data(f"SELECT * FROM Ne.TRANSMEDIA", "TRANSMEDIA_DATA")
+        self.NE_equipment_df = self.get_NE_table_data(f"SELECT * FROM Ne.mv_EQUIPMENT", "EQUIPMENT_DATA")
+        self.NE_splice_closure_df = self.get_NE_table_data(f"SELECT * FROM Ne.mv_SPLICE_CLOSURE", "SPLICE_CLOSURE_DATA")
+        self.NE_connection_df = self.get_NE_table_data(f"SELECT * FROM Ne.mv_CONNECTION", "CONNECTION_DATA")
+        self.NE_transmedia_df = self.get_NE_table_data(f"SELECT * FROM Ne.mv_TRANSMEDIA", "TRANSMEDIA_DATA")
 
 
         equipment_obj_id = self.NE_equipment_df[self.NE_equipment_df['EQUIPMENT_NAME'].isin(region_equipment_name)]
@@ -299,19 +453,36 @@ class Connection():
         
         report_data.update({"equipment_connection_tbl_row": len(equipment_df)})
         report_data.update({"splice_connection_tbl_row": len(splice_df)})
+
+        self.equipment_processed_data = self.splice_processed_data = 0
+        self.equipment_unprocessed_data = self.splice_unprocessed_data = 0
         
         df_combined = pd.concat([equipment_df, splice_df], ignore_index=True)
-        for index,  row in df_combined.iterrows():
+        for index, row in tqdm(df_combined.iterrows(), total=len(df_combined), desc="Processing conection"):
+        # for index,  row in df_combined.iterrows():
             cable_row_data, status = self.set_attr_val(row)
             if status:
                 cable_data.append(cable_row_data)
+                if row['CONNECTOR_CLASSID'] == 370:
+                    self.equipment_processed_data += 1
+                if row['CONNECTOR_CLASSID'] == 367:
+                    self.splice_processed_data += 1
             else:
                 cable_missing_data.append(cable_row_data)
+                if row['CONNECTOR_CLASSID'] == 370:
+                    self.equipment_unprocessed_data += 1
+                if row['CONNECTOR_CLASSID'] == 367:
+                    self.splice_unprocessed_data += 1
             
         report_data.update({"total_count": len(cable_data)})
         report_data.update({"missing_count": len(cable_missing_data)})
 
-        csv_file_name = r"C:\Kishore\SaskTel_Bisen\Swift"
+        csv_file_name = r"C:\Kishore\SaskTel_Bisen"
+        csv_file_name = os.path.join(csv_file_name, self.region)
+        if not os.path.exists(csv_file_name):
+            os.makedirs(csv_file_name)
+
+
         self.csv_path_ = r"C:\Kishore\SaskTel_Bisen\output"
 
         cable_data_df = pd.DataFrame(cable_data)
@@ -322,36 +493,38 @@ class Connection():
         if len(cable_data_df) != 0:
 
             fiber_filter_data = self.segregate_types_of_cable(cable_data_df, 'mywcom_fiber_segment')
+            # self.equipment_processed_data += list(fiber_filter_data['connector_classname']).count('Equipment')
+            # self.splice_processed_data += list(fiber_filter_data['connector_classname']).count('Splice Closure')
             fiber_filter_data = fiber_filter_data.drop(columns=self.ref_columns)
-            fiber_filter_data.to_csv(os.path.join(csv_file_name, "mywcom_fiber_connection.csv"), index=False)
+            if len(fiber_filter_data) != 0:
+                fiber_filter_data.to_csv(os.path.join(csv_file_name, "mywcom_fiber_connection.csv"), index=False)
             report_data.update({"fiber_count": len(fiber_filter_data)})
             
             copper_filter_data = self.segregate_types_of_cable(cable_data_df, 'mywcom_copper_segment')
+            # self.equipment_processed_data += list(copper_filter_data['connector_classname']).count('Equipment')
+            # self.splice_processed_data += list(copper_filter_data['connector_classname']).count('Splice Closure')
             copper_filter_data = copper_filter_data.drop(columns=self.ref_columns) 
-            copper_filter_data.to_csv(os.path.join(csv_file_name, "mywcom_copper_connection.csv"), index=False)
+            if len(copper_filter_data) != 0:
+                copper_filter_data.to_csv(os.path.join(csv_file_name, "mywcom_copper_connection.csv"), index=False)
             report_data.update({"copper_count": len(copper_filter_data)})
 
             coax_filter_data = self.segregate_types_of_cable(cable_data_df, 'mywcom_coax_segment')
+            # self.equipment_processed_data += list(coax_filter_data['connector_classname']).count('Equipment')
+            # self.splice_processed_data += list(coax_filter_data['connector_classname']).count('Splice Closure')
             coax_filter_data = coax_filter_data.drop(columns=self.ref_columns) 
-            coax_filter_data.to_csv(os.path.join(csv_file_name, "mywcom_coax_connection.csv"), index=False)
+            if len(coax_filter_data) != 0:
+                coax_filter_data.to_csv(os.path.join(csv_file_name, "mywcom_coax_connection.csv"), index=False)
             report_data.update({"coax_count": len(coax_filter_data)})
 
-
+        cable_missing_data_df = cable_missing_data_df.drop(columns=['root_housing','housing', 'location'])
         cable_missing_data_df.to_csv(os.path.join(csv_file_name, "missing_report.csv"), index=False)
 
         
         self._WriteCSVFile(os.path.join(csv_file_name, "ref_connection.csv"), cable_data)
-        self._WriteCSVFile(os.path.join(csv_file_name, "missing_elements.csv"), missing_elements)
-        pdf_path = os.path.join(csv_file_name, "Regina_summary.pdf")
+        # self._WriteCSVFile(os.path.join(csv_file_name, "missing_elements.csv"), missing_elements)
+        pdf_path = os.path.join(csv_file_name, self.region+"_summary.pdf")
         pdf_generator.make_summary_pdf(report_data, pdf_path)
-        # # self._WriteCSVFile(missing_report_csv_file_name, missing_elements)
-        # self._WriteCSVFile(missing_report_csv_file_name, cable_missing_data)
-        # data_ = self.remove_tag(cable_data)
-        # data_df = pd.DataFrame(data_)
-
-        # data_df.to_csv(csv_file_name, index=False)
-        
-        # self._WriteCSVFile(csv_file_name, data_)
+        self.summary_report(csv_file_name, report_data, cable_missing_data_df)
         return True
     
     
