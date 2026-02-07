@@ -30,7 +30,7 @@ from shapely import wkt
 from shapely.wkb import dumps
 
 class IQGeoCDIF:
-    def __init__(self, output_folder_dir, folder_name,  config_json_file_path,input_gdb , extent="0", route_cdif_file="", route_iqgeo_file="",str_iqgeo_file=""):
+    def __init__(self, output_folder_dir, folder_name,  config_json_file_path,input_gdb , extent="0", route_cdif_file="", route_iqgeo_file="",str_iqgeo_file="", oh_file_path=""):
         self.shortest_route_exception_list = []
         self.Initialized=False
         self.DataMigrationStatus=0
@@ -41,12 +41,15 @@ class IQGeoCDIF:
         self.config_json_file_path = config_json_file_path
         self.route_iqgeo_file = route_iqgeo_file
         self.str_iqgeo_file = str_iqgeo_file
+        self.str_iqgeo_file = str_iqgeo_file
+        self.oh_file_path = oh_file_path
         self.input_gdb = input_gdb 
         self.category= "CONDUIT"
         self._created_files = []
         self.error_count = 0
         self.new_ug_route = []
         self.new_oh_route = []
+        self.manually_created_route = []
 
         if extent=="0":
             # use Saskatchewan (Canada) default extent if no value passed
@@ -348,10 +351,15 @@ class IQGeoCDIF:
         except Exception as e:
             return {"error": str(e)}
         
+    def get_conduit_path(self, G, route_df, Missing_conduit):
+        data = self.get_shortest_path(route_df, Missing_conduit[1], Missing_conduit[2],G,Missing_conduit[3],Missing_conduit[4])
+        if "error" in data.keys():
+            data = self.get_shortest_path(route_df, Missing_conduit[2], Missing_conduit[1],G,Missing_conduit[3],Missing_conduit[4])
+        return data
     
     def ProcessCoundit(self, clm_name):
         sqlite_path = self.rootDirectory +"\\"+util_services.UTILServices.generate_random_string(10)
-         
+        name_idx = util_services.UTILServices.GetColumnIndex(clm_name, "name")
         conn = sqlite3.connect(sqlite_path)
         conn2=sqlite3.connect(self.sqlite_db)
         cur = conn.cursor()
@@ -383,6 +391,7 @@ class IQGeoCDIF:
         conf_val_idx = util_services.UTILServices.GetColumnIndex(clm_name,'confidence_percentage')
         df_route_ref = pd.read_csv(self.route_iqgeo_file,  on_bad_lines='skip')#,nrows=10
         df_str_ref = pd.read_csv(self.str_iqgeo_file,  on_bad_lines='skip')#,nrows=10
+        df_oh_route_ref = pd.read_csv(self.oh_file_path,  on_bad_lines='skip')
 
         self.gdf.sort_values(by=['CALCULATED_LENGTH','SHAPE_Length'],  inplace=True)
         self.gen_conduit_id=0
@@ -636,8 +645,65 @@ class IQGeoCDIF:
                         str_key=to_str_obj_id +'|'+frm_str_obj_id
                     
                         # cur.execute("INSERT INTO route_geom (str_hash , geom , lngth , no_vertex , obj_id , from_str_id , to_str_id , from_str_type , to_str_type , span_type ,in_str_name ,out_str_name  ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",(str_key,geom_wkb,lengths ,v_n ,iqgeo_ref_id_val, row['instr_object_id'],row['outstr_object_id'], row['INSTR_TYPE_NAME'],row['OUTSTR_TYPE_NAME'],row["TYPE_NAME"],FROM_STRUCTURE_NAME,TO_STRUCTURE_NAME ))
-                    cur.execute("INSERT INTO route_geom (str_hash , geom , lngth , no_vertex , obj_id , from_str_id , to_str_id , from_str_type , to_str_type , span_type ,in_str_name ,out_str_name ,is_active ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",(str_key,geom_wkb,lengths ,v_n ,iqgeo_ref_id_val, frm_str_obj_id,to_str_obj_id, row['INSTR_TYPE_NAME'],row['OUTSTR_TYPE_NAME'],row["TYPE_NAME"],FROM_STRUCTURE_NAME,TO_STRUCTURE_NAME ,'Y'))
-                    csv_data.append(csv_row)
+                    # cur.execute("INSERT INTO route_geom (str_hash , geom , lngth , no_vertex , obj_id , from_str_id , to_str_id , from_str_type , to_str_type , span_type ,in_str_name ,out_str_name ,is_active ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",(str_key,geom_wkb,lengths ,v_n ,iqgeo_ref_id_val, frm_str_obj_id,to_str_obj_id, row['INSTR_TYPE_NAME'],row['OUTSTR_TYPE_NAME'],row["TYPE_NAME"],FROM_STRUCTURE_NAME,TO_STRUCTURE_NAME ,'Y'))
+                    # csv_data.append(csv_row)
+                    try:
+                        raw_spec = asso_span_row[2] if 'asso_span_row' in locals() else None
+                    except Exception:
+                        raw_spec = None
+                    if not raw_spec:
+                        try:
+                            raw_spec = row.get('SPAN_REF_NAME') or row.get('SPECIFICATION') or row.get('LABEL') or row.get('SPAN_UNIT_NAME')
+                        except Exception:
+                            raw_spec = None
+ 
+                    qty = 1
+                    m = re.search(r'(\d+)\(', str(raw_spec))
+                    if m:
+                        try:
+                            qty = int(m.group(1))
+                        except Exception:
+                            qty = 1
+                    if qty < 1:
+                        qty = 1
+ 
+                    base_name = csv_row[name_idx] if name_idx != -1 else ""
+                    lengths = str_geom.length
+                    v_n = len(str_geom.coords)
+                    FROM_STRUCTURE_NAME = row["FROM_STRUCTURE_NAME"]
+                    TO_STRUCTURE_NAME = row["TO_STRUCTURE_NAME"]
+                    str_key = (frm_str_obj_id + '|' + to_str_obj_id) if frm_str_obj_id > to_str_obj_id else (to_str_obj_id + '|' + frm_str_obj_id)
+ 
+                    if qty == 1:
+                        csv_data.append(csv_row)
+                        cur.execute(
+                            "INSERT INTO route_geom (str_hash , geom , lngth , no_vertex , obj_id , from_str_id , to_str_id , from_str_type , to_str_type , span_type ,in_str_name ,out_str_name ,is_active ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                            (str_key, geom_wkb, lengths, v_n, iqgeo_ref_id_val, frm_str_obj_id, to_str_obj_id,
+                            row['INSTR_TYPE_NAME'], row['OUTSTR_TYPE_NAME'], row["TYPE_NAME"], FROM_STRUCTURE_NAME, TO_STRUCTURE_NAME, 'Y')
+                        )
+                    else:
+                        # First row becomes "(1)"
+                        if name_idx != -1:
+                            csv_row[name_idx] = f"{base_name}(1)"
+                        csv_data.append(csv_row)
+                        cur.execute(
+                            "INSERT INTO route_geom (str_hash , geom , lngth , no_vertex , obj_id , from_str_id , to_str_id , from_str_type , to_str_type , span_type ,in_str_name ,out_str_name ,is_active ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                            (str_key, geom_wkb, lengths, v_n, iqgeo_ref_id_val, frm_str_obj_id, to_str_obj_id,
+                            row['INSTR_TYPE_NAME'], row['OUTSTR_TYPE_NAME'], row["TYPE_NAME"], FROM_STRUCTURE_NAME, TO_STRUCTURE_NAME, 'Y')
+                        )
+                        for k in range(2, qty + 1):
+                            self.gen_conduit_id += 1
+                            new_id = obj_id_pre_fix + '/' + str(self.gen_conduit_id)
+                            new_row = list(csv_row)
+                            new_row[0] = new_id
+                            if name_idx != -1:
+                                new_row[name_idx] = f"{base_name}({k})"
+                            csv_data.append(new_row)
+                            cur.execute(
+                                "INSERT INTO route_geom (str_hash , geom , lngth , no_vertex , obj_id , from_str_id , to_str_id , from_str_type , to_str_type , span_type ,in_str_name ,out_str_name ,is_active ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                                (str_key, geom_wkb, lengths, v_n, new_id, frm_str_obj_id, to_str_obj_id,
+                                row['INSTR_TYPE_NAME'], row['OUTSTR_TYPE_NAME'], row["TYPE_NAME"], FROM_STRUCTURE_NAME, TO_STRUCTURE_NAME, 'Y')
+                            )
 
             else:
                 # idval=re.sub(r'[^0-9a-zA-Z]', '', row[uqfld])
@@ -862,10 +928,64 @@ class IQGeoCDIF:
                     str_key=frm_str_obj_id+'|'+to_str_obj_id
                 else:
                     str_key=to_str_obj_id +'|'+frm_str_obj_id
-                csv_data.append(csv_row)
+                # csv_data.append(csv_row)
                     # cur.execute("INSERT INTO route_geom (str_hash , geom , lngth , no_vertex , obj_id , from_str_id , to_str_id , from_str_type , to_str_type , span_type ,in_str_name ,out_str_name  ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",(str_key,geom_wkb,lengths ,v_n ,iqgeo_ref_id_val, row['instr_object_id'],row['outstr_object_id'], row['INSTR_TYPE_NAME'],row['OUTSTR_TYPE_NAME'],row["TYPE_NAME"],FROM_STRUCTURE_NAME,TO_STRUCTURE_NAME ))
-                cur.execute("INSERT INTO route_geom (str_hash , geom , lngth , no_vertex , obj_id , from_str_id , to_str_id , from_str_type , to_str_type , span_type ,in_str_name ,out_str_name ,is_active ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",(str_key,geom_wkb,lengths ,v_n ,iqgeo_ref_id_val, frm_str_obj_id,to_str_obj_id, row['INSTR_TYPE_NAME'],row['OUTSTR_TYPE_NAME'],row["TYPE_NAME"],FROM_STRUCTURE_NAME,TO_STRUCTURE_NAME ,'Y'))
-        
+                # cur.execute("INSERT INTO route_geom (str_hash , geom , lngth , no_vertex , obj_id , from_str_id , to_str_id , from_str_type , to_str_type , span_type ,in_str_name ,out_str_name ,is_active ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",(str_key,geom_wkb,lengths ,v_n ,iqgeo_ref_id_val, frm_str_obj_id,to_str_obj_id, row['INSTR_TYPE_NAME'],row['OUTSTR_TYPE_NAME'],row["TYPE_NAME"],FROM_STRUCTURE_NAME,TO_STRUCTURE_NAME ,'Y'))
+                try:
+                    raw_spec = asso_span_row[2] if 'asso_span_row' in locals() else None
+                except Exception:
+                    raw_spec = None
+                if not raw_spec:
+                    try:
+                        raw_spec = row.get('SPAN_REF_NAME') or row.get('SPECIFICATION') or row.get('LABEL') or row.get('SPAN_UNIT_NAME')
+                    except Exception:
+                        raw_spec = None
+ 
+                qty = 1
+                m = re.search(r'(\d+)\(', str(raw_spec))
+                if m:
+                    try:
+                        qty = int(m.group(1))
+                    except Exception:
+                        qty = 1
+                if qty < 1:
+                    qty = 1
+                base_name = csv_row[name_idx] if name_idx != -1 else ""
+                lengths = str_geom.length
+                v_n = len(str_geom.coords)
+                FROM_STRUCTURE_NAME = row["FROM_STRUCTURE_NAME"]
+                TO_STRUCTURE_NAME = row["TO_STRUCTURE_NAME"]
+                str_key = (frm_str_obj_id + '|' + to_str_obj_id) if frm_str_obj_id > to_str_obj_id else (to_str_obj_id + '|' + frm_str_obj_id)
+ 
+                if qty == 1:
+                    csv_data.append(csv_row)
+                    cur.execute(
+                        "INSERT INTO route_geom (str_hash , geom , lngth , no_vertex , obj_id , from_str_id , to_str_id , from_str_type , to_str_type , span_type ,in_str_name ,out_str_name ,is_active ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                        (str_key, geom_wkb, lengths, v_n, iqgeo_ref_id_val, frm_str_obj_id, to_str_obj_id,
+                        row['INSTR_TYPE_NAME'], row['OUTSTR_TYPE_NAME'], row["TYPE_NAME"], FROM_STRUCTURE_NAME, TO_STRUCTURE_NAME, 'Y')
+                    )
+                else:
+                    if name_idx != -1:
+                        csv_row[name_idx] = f"{base_name}(1)"
+                    csv_data.append(csv_row)
+                    cur.execute(
+                        "INSERT INTO route_geom (str_hash , geom , lngth , no_vertex , obj_id , from_str_id , to_str_id , from_str_type , to_str_type , span_type ,in_str_name ,out_str_name ,is_active ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                        (str_key, geom_wkb, lengths, v_n, iqgeo_ref_id_val, frm_str_obj_id, to_str_obj_id,
+                        row['INSTR_TYPE_NAME'], row['OUTSTR_TYPE_NAME'], row["TYPE_NAME"], FROM_STRUCTURE_NAME, TO_STRUCTURE_NAME, 'Y')
+                    )
+                    for k in range(2, qty + 1):
+                        self.gen_conduit_id += 1
+                        new_id = obj_id_pre_fix + '/' + str(self.gen_conduit_id)
+                        new_row = list(csv_row)
+                        new_row[0] = new_id
+                        if name_idx != -1:
+                            new_row[name_idx] = f"{base_name}({k})"
+                        csv_data.append(new_row)
+                        cur.execute(
+                            "INSERT INTO route_geom (str_hash , geom , lngth , no_vertex , obj_id , from_str_id , to_str_id , from_str_type , to_str_type , span_type ,in_str_name ,out_str_name ,is_active ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                            (str_key, geom_wkb, lengths, v_n, new_id, frm_str_obj_id, to_str_obj_id,
+                            row['INSTR_TYPE_NAME'], row['OUTSTR_TYPE_NAME'], row["TYPE_NAME"], FROM_STRUCTURE_NAME, TO_STRUCTURE_NAME, 'Y')
+                        )
 
             rec_processed+=1
             percent =int(100* (rec_processed / total_records))
@@ -916,51 +1036,92 @@ class IQGeoCDIF:
                         print('Break for debug')
                     length_of_org_conduit= row["geometry"].length
                     
-                    route_df['year'] = route_df['st_vntge_yr'].fillna(0).astype(int)
+                    # route_df['year'] = route_df['st_vntge_yr'].fillna(0).astype(int)
+                    route_df['year'] = pd.to_numeric(route_df["st_vntge_yr"], errors="coerce").fillna(0).astype(int)
+                    
+                    # route_df["year"] = (
+                    #     pd.to_numeric(route_df["st_vntge_yr"].replace(r"^\s*$", np.nan, regex=True), errors="coerce")
+                    #     .astype("Int64")   # nullable integer keeps <NA>
+                    #     .fillna(0)
+                    #     .astype(int)       # final plain int
+                    # )
+
+
                     self.exist_val_in_and_out_structure = [*list(route_df['in_structure']), *list(route_df['out_structure'])]
                     G = self.set_G_edges(route_df)  
-                    data = self.get_shortest_path(route_df, Missing_conduit[1], Missing_conduit[2],G,Missing_conduit[3],Missing_conduit[4])
-                    # if Missing_conduit[1] == 'building/50313':
-                    #     if Missing_conduit[2] == 'st_struct_pedestal/67611':
-                    #         c = 0
-                    confidence_val = data.get('confidence_percentage')
-                    if "error" in data.keys():
-                        # data = self.get_shortest_path(route_df, to_str_obj_id, frm_str_obj_id)
-                        data = self.get_shortest_path(route_df, Missing_conduit[2], Missing_conduit[1],G,Missing_conduit[3],Missing_conduit[4])
-                        confidence_val = data.get('confidence_percentage')
+                    oh_G = self.set_G_edges(df_oh_route_ref)
+                    # data = self.get_shortest_path(route_df, Missing_conduit[1], Missing_conduit[2],G,Missing_conduit[3],Missing_conduit[4])
+                    # # if Missing_conduit[1] == 'building/50313':
+                    # #     if Missing_conduit[2] == 'st_struct_pedestal/67611':
+                    # #         c = 0
+                    # confidence_val = data.get('confidence_percentage')
+                    # if "error" in data.keys():
+                    #     # data = self.get_shortest_path(route_df, to_str_obj_id, frm_str_obj_id)
+                    #     data = self.get_shortest_path(route_df, Missing_conduit[2], Missing_conduit[1],G,Missing_conduit[3],Missing_conduit[4])
+                    #     confidence_val = data.get('confidence_percentage')
 
+                    data = self.get_conduit_path(G, route_df, Missing_conduit)
+                    
+                    if "error" in data.keys():
+                        oh_data = self.get_conduit_path(oh_G, df_oh_route_ref, Missing_conduit)
+                        if "error" not in oh_data.keys():
+                            data = oh_data
+                            for route_name in data['path_name']:
+                                row_sr_val = df_oh_route_ref[df_oh_route_ref['name'] == route_name].iloc[0]
+                                row_sr_val = row_sr_val.replace(np.nan, "")
+                                row_df = row_sr_val.to_frame().T
+                                row_df['year'] = int(row_df['st_vntge_yr'][0])
+                                route_df = pd.concat([route_df, row_df], ignore_index=True)
+                                # route_df = pd.concat([route_df, row_df.dropna(axis=1, how="all")], ignore_index=True)
+                                df_route_ref = pd.concat([df_route_ref, pd.DataFrame([{'id': row_df['id'][0],
+                                                                                      'name':row_df['name'][0], 
+                                                                                'in_structure': row_df['in_structure'][0],
+                                                                                'out_structure': row_df['out_structure'][0]
+                                                                                }])], ignore_index=True)
+                        
                     if "error" in data.keys():
                         non_exist = ''
                         # if Missing_conduit[1] == 'mywcom_route_junction/27904':
                         #     c = 0
-                        if Missing_conduit[1] not in self.exist_val_in_and_out_structure: non_exist += f'source node {Missing_conduit[1]} not in graph'
-                        if Missing_conduit[2] not in self.exist_val_in_and_out_structure: non_exist += f'target node {Missing_conduit[2]} not in graph'
-                        if non_exist == '' and data.get('error') == 'No Link between nodes':
-                            path_name = self.generate_code(route_df, 'name',)
-                            s_no = self.generate_code(route_df, 'id')
+                        # if Missing_conduit[1] not in self.exist_val_in_and_out_structure: non_exist += f'source node {Missing_conduit[1]} not in graph'
+                        # if Missing_conduit[2] not in self.exist_val_in_and_out_structure: non_exist += f'target node {Missing_conduit[2]} not in graph'
+                        if data.get('error') == 'No Link between nodes' or 'not in graph' in data.get('error'):
+                            # if Missing_conduit[1] == 'pole/62378' and Missing_conduit[2] == 'mywcom_route_junction/32093':
+                            #     c = 0
+                            in_str = df_str_ref.loc[df_str_ref['name'] == row['FROM_STRUCTURE_NAME']].iloc[0]['id']
+                            out_str = df_str_ref.loc[df_str_ref['name'] == row['TO_STRUCTURE_NAME']].iloc[0]['id']
+                            type_name = 'MESSENGER' if 'pole' in in_str or 'pole' in out_str else 'BURIED'
+                            path_name = self.generate_code(route_df, 'name',type_name)
+                            s_no = self.generate_code(route_df, 'id', type_name)
                             data['shortest_path'] = [Missing_conduit[1], Missing_conduit[2]]
                             data['confidence_percentage'] = 0
                             data['shortest_path_list'] = (Missing_conduit[1], Missing_conduit[2], path_name)
                             data['path_name'] = [path_name]
-                            # del data["error"]
+                            data['manually_created_route'] = True
+                            del data["error"]
                             geom = util_services.UTILServices.ConvertMultiLineToLine(row["geometry"])
                             data['geom'] = dumps(geom, hex=True)
-                            in_str = df_str_ref.loc[df_str_ref['name'] == row['FROM_STRUCTURE_NAME']].iloc[0]['id']
-                            out_str = df_str_ref.loc[df_str_ref['name'] == row['TO_STRUCTURE_NAME']].iloc[0]['id']
-                            type_name = 'MESSENGER' if 'pole' in in_str or 'pole' in out_str else 'BURIED'
+                            # in_str = df_str_ref.loc[df_str_ref['name'] == row['FROM_STRUCTURE_NAME']].iloc[0]['id']
+                            # out_str = df_str_ref.loc[df_str_ref['name'] == row['TO_STRUCTURE_NAME']].iloc[0]['id']
+                            # type_name = 'MESSENGER' if 'pole' in in_str or 'pole' in out_str else 'BURIED'
                             new_row = {'id': 'ug_route/'+str(s_no), 'path': dumps(geom, hex=True) , 'in_structure': in_str,
                                         'out_structure': out_str, 'name': path_name,
                                         'type_name': type_name, 'inventory_status_code': 'IPL', 
                                         'st_std_desc': '', 'measured_length': row["geometry"].length, 
-                                        'st_ownr_co_nm': 'SASKTEL','st_rmks': 'Manually_Created_Route',
+                                        'st_ownr_co_nm': 'SASKTEL','st_rmks': 'Manually Created Route',
                                           'st_vntge_yr': 0, 'create_user': 'SYSTEM', 'created_at': datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
-                                            'update_user': 'SYSTEM', 'updated_at': datetime.now().strftime("%Y-%m-%dT%H:%M:%S")}
+                                            'update_user': 'SYSTEM', 'updated_at': datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+                                            ,"year":0}
                             self.new_oh_route.append(new_row) if type_name == 'MESSENGER' else self.new_ug_route.append(new_row)
                             route_df = pd.concat([route_df, pd.DataFrame([new_row])], ignore_index=True)
                             df_route_ref = pd.concat([df_route_ref, pd.DataFrame([{'id': 'ug_route/'+str(s_no),'name':path_name, 
                                                                                'in_structure': in_str,
                                                                                'out_structure': out_str
                                                                                }])], ignore_index=True)
+                            #creating_separate_page_in_excel_forManually_Created_Route
+                            self.manually_created_route.append([path_name, row['SPAN_NAME'],  Missing_conduit[1] , Missing_conduit[2],"Manually Created Route with confidence level as 0"])
+                        
+                    confidence_val = data.get('confidence_percentage')
                     if "error" in data.keys():
                         if non_exist == "":
                             non_exist = data.get("error")
@@ -1022,7 +1183,8 @@ class IQGeoCDIF:
 
                                 geom_list.append(route_geom)
                                 csv_row=[]
-                                idval= route_rw[0]
+                                # idval= route_rw[0]
+                                idval= route_rw.iloc[0]
                                 iqgeo_ref_id_val= obj_id_pre_fix + '/' +str( self.gen_conduit_id  )
 
 
@@ -1047,9 +1209,16 @@ class IQGeoCDIF:
                                 for fld in self.filtered_fields:
                                     
                                     fld_val=self._GetFieldValue(fld,fld_indx,row,idval)
-                                    if fld["Field_Name"]=="name": 
-                                        conduit_name=fld_val+'-'+str(i)
-                                        fld_val=conduit_name
+                                    # if fld["Field_Name"]=="name": 
+                                    #     conduit_name=fld_val+'-'+str(i)
+                                    #     fld_val=conduit_name
+                                    if fld["Field_Name"] == "name":
+                                        base = str(fld_val) if fld_val is not None else ""
+                                        base = re.sub(r'-\d+$', '', base)
+                                       
+                                        base = f"{base}-{i}"
+                                        conduit_name = base            
+                                        fld_val = conduit_name
 
                                     if fld["Field_Name"]=="confidence_percentage": fld_val=confidence_val
 
@@ -1057,12 +1226,56 @@ class IQGeoCDIF:
                                     fld_indx+=1
 
                                 #checking conduit name is already added in csv and if YES then just bypass
-                                searched_item = [r for r in csv_data if r[9]==conduit_name]
-                                if searched_item:
-                                    print ('bypass')
+                                # searched_item = [r for r in csv_data if r[9]==conduit_name]
+                                # if searched_item:
+                                #     print ('bypass')
+                                # else:
+                                #     csv_data.append(csv_row)
+                                # cur.execute("INSERT INTO route_geom (  obj_id , from_str_id , to_str_id ,cr_id  ) VALUES (?,?,?,? )",( iqgeo_ref_id_val, route_rw['in_structure'],route_rw['out_structure'],cr_id))
+                                raw_spec = None
+                                try:
+                                    raw_spec = (row.get('SPAN_REF_NAME') or row.get('SPECIFICATION') or  row.get('LABEL') or row.get('SPAN_UNIT_NAME'))
+                                except Exception:
+                                    raw_spec = None
+                                m = re.search(r'(\d+)\(', str(raw_spec))
+                                qty = int(m.group(1)) if m else 1
+                                if qty < 1:
+                                    qty = 1
+                                # Base name is already in the row now (no "(j)" yet)
+                                base_name = csv_row[name_idx] if name_idx != -1 else ""
+                                # Emit row 1
+                                if qty == 1:
+                                    # No quantity → keep base (no "(1)")
+                                    # Optional duplicate check (safer)
+                                    if name_idx != -1:
+                                        exists = [r for r in csv_data if len(r) > name_idx and r[name_idx] == base_name]
+                                        if not exists:
+                                            csv_data.append(csv_row)
+                                            cur.execute(
+                                                "INSERT INTO route_geom (obj_id, from_str_id, to_str_id, cr_id) VALUES (?,?,?,?)",
+                                                (iqgeo_ref_id_val, route_rw['in_structure'], route_rw['out_structure'], cr_id)
+                                            )
                                 else:
+                                    # qty >= 2 → first row becomes "(1)"
+                                    if name_idx != -1:
+                                        csv_row[name_idx] = f"{base_name}(1)"
                                     csv_data.append(csv_row)
-                                cur.execute("INSERT INTO route_geom (  obj_id , from_str_id , to_str_id ,cr_id  ) VALUES (?,?,?,? )",( iqgeo_ref_id_val, route_rw['in_structure'],route_rw['out_structure'],cr_id))
+                                    cur.execute(
+                                        "INSERT INTO route_geom (obj_id, from_str_id, to_str_id, cr_id) VALUES (?,?,?,?)",
+                                        (iqgeo_ref_id_val, route_rw['in_structure'], route_rw['out_structure'], cr_id)
+                                    )
+                                    for j in range(2, qty + 1):
+                                        self.gen_conduit_id += 1
+                                        new_id = obj_id_pre_fix + '/' + str(self.gen_conduit_id)
+                                        new_row = list(csv_row)
+                                        new_row[0] = new_id
+                                        if name_idx != -1:
+                                            new_row[name_idx] = f"{base_name}({j})"
+                                        csv_data.append(new_row)
+                                        cur.execute(
+                                            "INSERT INTO route_geom (obj_id, from_str_id, to_str_id, cr_id) VALUES (?,?,?,?)",
+                                            (new_id, route_rw['in_structure'], route_rw['out_structure'], cr_id)
+                                        )
                         else:
                             print(length_of_org_conduit,'-----',length_of_all_parts)
                             #Length of identified shortest route is more than 50% of original conduit route hence not considered as correct route
@@ -1338,13 +1551,15 @@ class IQGeoCDIF:
             return {"error": str(e)}
         return G
     
-    def generate_code(self, df, type):
+    def generate_code(self, df, type, type_name):
+        name  = 'OSP:MESS' if type_name == 'MESSENGER' else 'OSP:BUSP'
+        route_name = 'oh_route' if type_name == 'MESSENGER' else 'ug_route'
         while True:
             num = random.randint(10000000, 99999999)  # ensures 6-digit number
-            code = f"OSP:BUSP::{num}"
+            code = f"{name}::{num}"
             if type == 'name' and code not in list(df['name']):
                 return code   
-            if type == 'id' and 'ug_route/'+str(num) not in list(df['id']):
+            if type == 'id' and route_name+str(num) not in list(df['id']):
                 num = random.randint(100000, 999999)
                 return num
 
@@ -1720,7 +1935,9 @@ class IQGeoCDIF:
         if len(self.parent_missing)>0:
             # self.parent_missing = [row + [None] * (7 - len(row)) for row in self.parent_missing]
             df_xl8 = pd.DataFrame(self.parent_missing, columns=['Object ID','Type','From Structure','To Structure','Length of conduit', 'Length of all parts', 'issue'])
-        
+        if len(self.manually_created_route)>0:
+            df_xl9 = pd.DataFrame(self.manually_created_route, columns=['Route_Name','Object ID','From Structure','To Structure','Issue'])
+
         summary_path = os.path.join(self.rootDirectory,self.folder_name+'_summary')
         if not os.path.exists(summary_path):
             os.makedirs(summary_path ) 
@@ -1741,6 +1958,8 @@ class IQGeoCDIF:
                 df_xl7.to_excel(writer, sheet_name='CoreHole', index=False)
             if len(self.parent_missing)>0:
                 df_xl8.to_excel(writer, sheet_name='MissingObjects', index=False)
+            if len(self.manually_created_route)>0:
+                df_xl9.to_excel(writer, sheet_name='ManuallyCreatedRoute', index=False)
 
         end_time = time.time()
         elapsed_seconds = end_time - self.start_time
