@@ -20,14 +20,78 @@ from shapely import wkb
 import random
 import string
 from typing import Literal, Union
-from shapely import wkb
-from shapely.ops import linemerge
+import zipfile
+import os, glob
+
+from shapely.ops import linemerge, unary_union
+from shapely.wkb import loads as load_wkb, dumps as dump_wkb
+import binascii
+import json
+
+
 
 WKBLike = Union[str, bytes, bytearray]
 
 # pip install geopy 
 class UTILServices:
     # def __init__(self):
+
+    def findStructureID(structure_folder: str, structure_name: str):
+        # cached all data 
+        if not hasattr(UTILServices, "_STRUCT_CACHE_SIMPLE"):
+            UTILServices._STRUCT_CACHE_SIMPLE = {}
+
+        abs_folder = os.path.abspath(structure_folder)
+        if not structure_name:
+            return None
+
+        # Build cache for folder
+        if abs_folder not in UTILServices._STRUCT_CACHE_SIMPLE:
+            catalog = {}  
+            all_files = glob.glob(os.path.join(abs_folder, "*"))
+            all_csv_files = []
+            
+            for p in all_files:
+                if os.path.isdir(p):
+                    csv_files = glob.glob(f"{p}/*.csv")
+                    all_csv_files.extend(csv_files)
+
+            for p in all_csv_files:
+                if p.lower().endswith(".fields"):
+                    continue
+                if not os.path.isfile(p):
+                    continue
+                try:
+                    df = pd.read_csv(p, on_bad_lines='skip')
+                except Exception:
+                    continue
+                if df.empty:
+                    continue
+
+                # detect name column
+                lc = {c.lower(): c for c in df.columns}
+                name_col = next((lc[c] for c in ["name"] if c in lc), None)
+                if not name_col:
+                    continue
+
+                df["__name_norm__"] = df[name_col].astype(str).str.strip().str.upper()
+
+                # store FULL row as dict
+                for _, row in df.drop_duplicates("__name_norm__").iterrows():
+                    nm = row["__name_norm__"]
+                    if nm and nm not in catalog:
+                    
+                        row_dict = row.to_dict()
+                        row_dict.pop("__name_norm__", None)
+                        catalog[nm] = row_dict
+
+            UTILServices._STRUCT_CACHE_SIMPLE[abs_folder] = catalog
+
+        # lookup
+        catalog = UTILServices._STRUCT_CACHE_SIMPLE[abs_folder]
+        key = str(structure_name).strip().upper()
+
+        return catalog.get(key, None)
 
     def getEWKB(tempGeo, srcCRS, tgtCRS):
         # Reprojection of data if original data is in other then GCS - WGS84 
@@ -45,8 +109,8 @@ class UTILServices:
         except Exception as e:
             print(f"Error occured during domain value check '{str(e)}' for domain '{domain_csv}' and value is '{fld_val}'")
          
-    def find_duplicates(csv_row, name_fld_idx=2):
-        clm_index=1
+    def find_duplicates(csv_row, name_fld_idx=2,clm_index=1, include_geom=True):
+        
         value_map=defaultdict(list)
         for rw in csv_row:
             key=rw[clm_index]
@@ -58,14 +122,18 @@ class UTILServices:
         for val , rows in duplicates.items():
                 for rw in rows:
                     csv_string=rw
-                    
                     obj_id = csv_string[0]
-                    geom = csv_string[1]
                     nm = csv_string[name_fld_idx]
-
-                    duplicate_rows.append([obj_id,nm,geom])
+                    if include_geom==True:
+                        geom = csv_string[1]
+                        duplicate_rows.append([obj_id,nm,geom])
+                    else:
+                        duplicate_rows.append([obj_id,nm,""])
+                        
 
         return len(duplicate_rows)        , duplicate_rows
+
+     
 
     def check_field_type_and_value(field_value, field_type):
         # , obj_id,fld_nm,fld_indx,domain_val
@@ -226,7 +294,7 @@ class UTILServices:
             expr = re.sub( r'(gdf\["[^"]+"\]\s*<=\s*[^&|()]+)', r'(\1)', expr )
             expr = re.sub( r'(gdf\["[^"]+"\]\s*>\s*[^&|()]+)', r'(\1)', expr )
             expr = re.sub( r'(gdf\["[^"]+"\]\s*<\s*[^&|()]+)', r'(\1)', expr )
-
+            expr
         # Step 5: Evaluate
             try:
                 mask = eval(expr)
@@ -562,7 +630,11 @@ class UTILServices:
         
         return data
     
-
+    def merge_geom(geom_ary):
+        shapleygeom=[load_wkb(bytes.fromhex(g)) for g in  geom_ary]
+        merged = unary_union (shapleygeom)
+        lm=linemerge(merged) 
+        return dump_wkb(lm).hex().upper()
 
     def merge_multilines_wkb(a_wkb: WKBLike, b_wkb: WKBLike, return_hex: bool = True) -> Union[str, bytes]:
      
@@ -620,3 +692,286 @@ class UTILServices:
     def merge_corehole_geom (buried_geom, ch_geom, inserte_at):
 
         return
+    
+    def get_char_after(text_to_check,char_to_find):
+        result=""         
+        index = text_to_check.rfind(char_to_find)
+        if index != -1: 
+            result = text_to_check[index + 1:]
+
+        return result
+
+    def remove_duplicates (csv_data_list):
+        """
+        Removes duplicate rows from a list of CSV data, preserving order.
+        Assumes each row in csv_data_list is a list of strings (or other hashable types).
+        """
+        print(f'Removing duplicates...rows before {len(csv_data_list)}')
+        seen = set()
+        unique_rows = []
+        for row in csv_data_list:
+            # Convert row to tuple for hashability
+            row_tuple = tuple(row)
+            if row_tuple not in seen:
+                unique_rows.append(row)
+                seen.add(row_tuple)
+        print(f'Rows after duplicate removal {len(unique_rows)}')
+        
+        return unique_rows
+
+    def remove_duplicates_from_csv(input_csv_path, output_csv_path=None, subset=None, keep='first'):
+        """
+        Removes duplicate rows from a CSV file.
+
+         
+        """
+        try:
+            # Read the CSV file into a pandas DataFrame
+            df = pd.read_csv(input_csv_path)
+
+            # Remove duplicate rows
+            # 'inplace=True' modifies the DataFrame directly
+            df.drop_duplicates(subset=subset, keep=keep, inplace=True)
+
+            # Determine the output path
+            if output_csv_path is None:
+                output_csv_path = input_csv_path
+
+            # Save the DataFrame to a new CSV file (or overwrite the original)
+            # 'index=False' prevents pandas from writing the DataFrame index as a column
+            df.to_csv(output_csv_path, index=False)
+           
+
+        except FileNotFoundError:
+            print(f"Error: The file '{input_csv_path}' was not found.")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+
+    def WriteCSVFile(file_name,clm_name, csvdata, remove_duplicate=True):
+        if len(csvdata)>0:
+            if remove_duplicate == True:
+                print(f'Removing duplicates...',end="\r")
+                csvdata= UTILServices.remove_duplicates(csvdata)
+                print(f'Total record after duplicate {len(csvdata)}')
+
+            with open(file_name,'w',newline='',encoding='utf-8') as csvfile:
+                    writer=csv.writer(csvfile)
+                    # for csvdata in csvdata_list:
+                    writer.writerow( clm_name)        
+                    writer.writerows( csvdata)
+                
+             
+        else:
+            print("No data processed to write the CSV file.")        
+    
+    def WriteZipFile(self,selected_files,rootDirectory,target_object,output_zip_file_name):
+        self.output_zip_file_name = rootDirectory +"\\" + target_object.upper() +'_cdif'+ datetime.now().strftime("%Y%m%d_%H%M%S")+'.zip'
+
+        with zipfile.ZipFile(output_zip_file_name, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            for file_name in selected_files:
+                file_path = os.path.join(rootDirectory, file_name)
+                if os.path.exists(file_path) and os.path.isfile(file_path):
+                    zipf.write(file_path, arcname=file_name) # arcname ensures only the filename is used in the zip
+                else:
+                    print(f"Warning: File '{file_name}' not found in '{self.folder_path}' and could not be added to the zip.")
+                    # logging.warning(f"Warning: File '{file_name}' not found in '{self.folder_path}' and could not be added to the zip.")
+    
+    def GetColumnIndex(clm_names,clm):
+        idx=0
+          
+        for cl in clm_names:
+            if cl==clm:
+                return idx
+            idx+=1
+        
+        return -1
+    
+    def angle_deg(p0, p1):
+        """Planar angle (azimuth) in degrees, 0° = east, 90° = north, [-180, 180)."""
+        dx = p1[0] - p0[0]
+        dy = p1[1] - p0[1]
+        ang = math.degrees(math.atan2(dy, dx))  # atan2(y, x)
+        return ang
+    
+    def offset_geometry_latest(geom: LineString, distance: float, side: str = "left"):
+        """
+        Offset a LineString using Shapely's parallel_offset and replace endpoints with originals.
+        Returns a LineString or None if not possible.
+        """
+        if not isinstance(geom, LineString):
+            raise TypeError("Only LineString geometries are supported.")
+
+        # Guard against degenerate lines
+        if geom.is_empty or geom.length == 0:
+            return None
+
+        # Compute offset; join_style=2 (mitre). Adjust mitre_limit if needed.
+        offset = geom.parallel_offset(distance, side=side, join_style=2, mitre_limit=5.0)
+
+        if offset.is_empty:
+            return None
+
+        # Normalize to a single LineString
+        if isinstance(offset, MultiLineString):
+            parts = list(offset.geoms)
+            if not parts:
+                return None
+            offset_ls = max(parts, key=lambda g: g.length)
+        elif isinstance(offset, LineString):
+            offset_ls = offset
+        else:
+            merged = linemerge(offset)
+            if merged.is_empty:
+                return None
+            if isinstance(merged, MultiLineString):
+                parts = list(merged.geoms)
+                if not parts:
+                    return None
+                offset_ls = max(parts, key=lambda g: g.length)
+            elif isinstance(merged, LineString):
+                offset_ls = merged
+            else:
+                return None
+
+        coords = list(offset_ls.coords)
+        if len(coords) < 2:
+            return None
+
+        # Replace endpoints (do not insert; preserve order)
+        coords[0]  = geom.coords[0]
+        coords[-1] = geom.coords[-1]
+
+        return LineString(coords)
+    
+    def offset_geometry(geom, distance, side="left"):
+        """
+            Offsets a LineString geometry while keeping the first and last vertices fixed.
+
+            Parameters:
+            geom (LineString): Input LineString geometry.
+            distance (float): Offset distance (positive = outward, negative = inward).
+            side (str): "left" or "right" offset direction.
+
+    Returns:
+    LineString: Offset geometry with fixed endpoints.
+    """
+        if not isinstance(geom, LineString):
+            raise TypeError("Only LineString geometries are supported.")
+
+    # Create offset line using shapely
+        offset_geom = geom.parallel_offset(distance, side, join_style=2)
+    # parallel_offset may return MultiLineString
+        if offset_geom.geom_type == "MultiLineString":
+        # pick the longest one (most likely the intended offset)
+            try:
+                offset_geom = max(offset_geom, key=lambda l: l.length)
+            except Exception as e:
+                offset_geom = max(offset_geom.geoms, key=lambda l: l.length)
+
+        if offset_geom:
+            # Extract coords and replace first & last with original
+            coords = list(offset_geom.coords)
+            #adding first and last vertex by taking from source geom
+            # coords.insert(0,geom.coords[0])
+            # coords.insert(0,geom.coords[-1])
+
+            coords[0]  = geom.coords[0]
+            coords[-1] = geom.coords[-1]
+
+
+        
+            return LineString(coords)
+        return offset_geom
+
+
+    def offset_line(line, distance, side='left', join_style=2):
+        # Generate offset line using Shapely’s built-in function
+        offset = line.parallel_offset(distance, side, join_style=join_style)
+
+        # Handle MultiLineString (take the longest piece)
+        if offset.geom_type == 'MultiLineString':
+            offset = max(offset.geoms, key=lambda g: g.length)
+
+            # Extract coordinates and fix start/end points
+        coords = list(offset.coords)
+        coords[0] = line.coords[0]
+        coords[-1] = line.coords[-1]
+
+        return LineString(coords)
+    def get_db_con():
+    
+        try:    
+            with open('config\dbcon.json', 'r') as f:
+                settings = json.load(f)
+        except:
+             settings=""
+
+        return settings
+    def export_gdb_to_sqlite(gdb_path, sqlite_db_path,layers):
+        
+        # Create a SQLite connection
+        conn = sqlite3.connect(sqlite_db_path)
+
+        for layer_name in layers:
+            print(f"Exporting feature class: {layer_name}")
+            try:
+                # Read the feature class into a GeoDataFrame
+                gdf = gpd.read_file(gdb_path, layer=layer_name,ignore_geometry=True)
+
+                # Export the GeoDataFrame to a table in the SQLite database
+                # 'if_exists="replace"' will overwrite the table if it already exists
+                # 'index=False' prevents writing the GeoDataFrame index as a column
+                gdf.to_sql(name=layer_name, con=conn, if_exists='replace', index=False)
+                print(f"Successfully exported {layer_name} to SQLite.")
+            except Exception as e:
+                print(f"Error exporting {layer_name}: {e}")
+
+        # Close the SQLite connection
+        conn.close()
+        print(f"Export process complete. Data saved to {sqlite_db_path}")
+
+    # Example usage:
+    # Specify the path to your .gdb and the desired output .sqlite file
+        # file_gdb_path = "path/to/your/your_geodatabase.gdb"
+        # output_sqlite_path = "path/to/your/output_database.sqlite"
+
+        # # Ensure the output directory exists
+        # output_dir = os.path.dirname(output_sqlite_path)
+        # if not os.path.exists(output_dir):
+        #     os.makedirs(output_dir)
+
+        # export_gdb_to_sqlite(file_gdb_path, output_sqlite_path)
+        
+    def ConvertMultiLineToLine(geom):
+
+        converted_line = None
+        if geom is None:
+            return converted_line
+        
+        if isinstance(geom, LineString):
+            converted_line = geom
+            
+        elif isinstance(geom, MultiLineString):
+            coords = []
+            for line in geom.geoms:
+                coords.extend(line.coords)
+            converted_line = LineString(coords)
+        return converted_line
+    
+
+    def get_csv_path(csv_data_path, folder_name):
+        if folder_name == 'cables':
+            return glob.glob(os.path.join(os.path.join(csv_data_path, folder_name), "**", "*_cable*.csv"), recursive=True)
+        if folder_name == 'routes':
+            return [f for f in glob.glob(os.path.join(csv_data_path, folder_name, "**", "*.csv"), recursive=True)
+            if os.path.basename(f) in ['formation_ug_route.csv','oh_route.csv','ug_route.csv']]
+        if folder_name == 'segment':
+            return glob.glob(os.path.join(os.path.join(csv_data_path, folder_name), "**", "*_segment*.csv"), recursive=True)
+        return glob.glob(os.path.join(os.path.join(csv_data_path, folder_name), "**", "*.csv"), recursive=True)
+
+
+    def get_data_of_item(csv_data_path, folder_name):
+        csv_paths = UTILServices.get_csv_path(csv_data_path, folder_name)
+        df_list = [pd.read_csv(file) for file in csv_paths]
+        data = pd.concat(df_list, ignore_index=True)
+        return  data
