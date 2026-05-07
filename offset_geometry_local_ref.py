@@ -263,8 +263,8 @@ class offset_geometry():
     
     def structure_offset(self, cable_name: list):
         for i in tqdm(cable_name, total=len(cable_name), desc="Checking cable in structure which was missing in Route"):
-            # if i == 'PRSR:APIPE:D7853982': 
-            #     pass
+            if i == 'COPER:COPER:C484005': 
+                pass
             cable_row = self.cable_df.loc[(self.cable_df['name'] == i)]
             if isinstance(cable_row['path'].iloc[0], float) and math.isnan(cable_row['path'].iloc[0])\
                 and cable_row['path'].iloc[0] is None:
@@ -276,15 +276,15 @@ class offset_geometry():
                                             'path': cable_row['path'].iloc[0], 
                                             'length': self.length_of_path(cable_row['path'].iloc[0])}) 
                 continue
-            struct_info = self.structure_data.loc[(self.structure_data['name'] == cable_row['from_structure_name'].iloc[0])]
-            if struct_info.empty: continue
-            struct_name = struct_info['name'].iloc[0]
-            match = self.load_point(str(struct_info['start_point'].iloc[0])).equals(cable_point)
-            # match = next(
-            #     (r[1].iloc[4] for r in self.structure_data.iterrows() if self.load_point(str(r[1].iloc[-1])).equals(cable_point)),
-            #     None
-            # )
-            if match:
+            # struct_info = self.structure_data.loc[(self.structure_data['name'] == cable_row['from_structure_name'].iloc[0])]
+            # if struct_info.empty: continue
+            # struct_name = struct_info['name'].iloc[0]
+            # match = self.load_point(str(struct_info['start_point'].iloc[0])).equals(cable_point)
+            struct_name = next(
+                (r[1].iloc[4] for r in self.structure_data.iterrows() if self.load_point(str(r[1].iloc[-1])).equals(cable_point)),
+                None
+            )
+            if struct_name:
                 self.strcuture_data[struct_name] = self.strcuture_data.get(struct_name, {"struct_name":struct_name,"side": "", "distance": 0,
                                                                                                 "count":0,
                                                                                                 'cable_name':[]})
@@ -319,11 +319,23 @@ class offset_geometry():
                                             "distance":distance,
                                             "side": side,
                                             "length": cable_row['length'].iloc[0]}
-                    if "coax_cable" in cable_row['cable_id'].iloc[0]: 
+                    if "coax_cable" in cable_row['cable_id'].iloc[0]:
+                        self.coax_cable_data.loc[
+                            self.coax_cable_data['name'] == i,
+                            'offset_geom'
+                        ] = off_set_geom 
                         self.coax_offset_df = pd.concat([self.coax_offset_df, pd.DataFrame([new_row])], ignore_index=True)
-                    if "copper_cable" in cable_row['cable_id'].iloc[0]: 
+                    if "copper_cable" in cable_row['cable_id'].iloc[0]:
+                        self.copper_cable_data.loc[
+                            self.copper_cable_data['name'] == i,
+                            'offset_geom'
+                        ] = off_set_geom 
                         self.copper_offset_df = pd.concat([self.copper_offset_df, pd.DataFrame([new_row])], ignore_index=True)
-                    if "copper_cable" in cable_row['cable_id'].iloc[0]: 
+                    if "fiber_cable" in cable_row['cable_id'].iloc[0]: 
+                        self.fiber_cable_data.loc[
+                            self.fiber_cable_data['name'] == i,
+                            'offset_geom'
+                        ] = off_set_geom
                         self.fiber_offset_df = pd.concat([self.fiber_offset_df, pd.DataFrame([new_row])], ignore_index=True)
                 else:
                     self.offset_exception.append({'name':i,
@@ -475,21 +487,23 @@ class offset_geometry():
         
         self.coax_offset_df = pd.DataFrame(coax_cable_off_set_geometry)
         # if not coax_offset_df.empty: coax_offset_df = coax_offset_df.dropna(subset=["offset_geom"]).reset_index(drop=True)
-
+        
         df_combined = pd.concat([self.fiber_offset_df, self.copper_offset_df, self.coax_offset_df], ignore_index=False)
-
-        if not df_combined.empty: df_combined.to_csv(os.path.join(self.csv_path, "ref_data.csv"), index=False)
-
         diff = set(self.cable_df['name']).symmetric_difference(set(list(df_combined['name'])))
         self.structure_cable = []
         if diff: 
             # not_generated_cable = pd.DataFrame([{"name": item, "remark": "offset not generated"} for item in diff])
             # not_generated_cable.to_csv(os.path.join(self.csv_path, "cable_not_generated.csv"), index=False)
             self.structure_offset(diff)
-            cable_not_generated = [x for x in list(diff) if x not in self.structure_cable]
-            not_generated_cable = pd.DataFrame([{"name": item, "remark": "offset not generated"} for item in cable_not_generated])
-            not_generated_cable.to_csv(os.path.join(self.csv_path, "cable_not_generated.csv"), index=False)
+            # cable_not_generated = [x for x in list(diff) if x not in self.structure_cable]
+            # not_generated_cable = pd.DataFrame([{"name": item, "remark": "offset not generated"} for item in cable_not_generated])
+            # not_generated_cable.to_csv(os.path.join(self.csv_path, "cable_not_generated.csv"), index=False)
 
+        
+        df_combined = pd.concat([self.fiber_offset_df, self.copper_offset_df, self.coax_offset_df], ignore_index=False)
+        if not df_combined.empty: df_combined.to_csv(os.path.join(self.csv_path, "ref_data.csv"), index=False)
+
+        
         if not self.fiber_offset_df.empty: self.fiber_offset_df = self.fiber_offset_df.dropna(subset=["offset_geom"]).reset_index(drop=True)
         if not self.copper_offset_df.empty: self.copper_offset_df = self.copper_offset_df.dropna(subset=["offset_geom"]).reset_index(drop=True)
         if not self.coax_offset_df.empty: self.coax_offset_df = self.coax_offset_df.dropna(subset=["offset_geom"]).reset_index(drop=True)
