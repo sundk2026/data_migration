@@ -15,16 +15,16 @@ import pyproj
 
 class offset_geometry():
     def __init__(self):
-        self.csv_path = r"C:\Kishore\Test\offset_geometry\SWC"
-        self.cable_df = pd.read_csv(os.path.join(self.csv_path, "swc_cable_offset.csv"))
-        self.segment_df = pd.read_csv(os.path.join(self.csv_path, "swc_segment_offset.csv"))
-        self.route_data_df = pd.read_csv(os.path.join(self.csv_path, "swc_route_offset.csv"))
-        self.structure_data = UTILServices.get_data_of_item(r"C:\Kishore\Test\od", 'structures')
+        self.csv_path = r"C:\Kishore\Test\offset_geometry\Regina"
+        self.cable_df = pd.read_csv(os.path.join(self.csv_path, "cable_offset.csv"))
+        self.segment_df = pd.read_csv(os.path.join(self.csv_path, "segment_offset.csv"))
+        self.route_data_df = pd.read_csv(os.path.join(self.csv_path, "route_offset.csv"))
+        self.structure_data = UTILServices.get_data_of_item(self.csv_path, 'structures')
         # self.structure_data['start_point'] = self.structure_data['location']
         self.structure_data['start_point'] = self.structure_data['location'].apply(lambda x: wkb.loads(bytes.fromhex(x)))
         self.route_data_df = self.route_data_df[['id', 'name', 'path']]
         
-        self.ref_columns = ['route_name','path', 'count', 'side', 'wkb_hex','placement','distance', 'length']
+        self.ref_columns = []
         
         # self.oh_route = pd.read_csv(os.path.join(self.csv_path, "oh_route_regina.csv"))
         # self.ug_route = pd.read_csv(os.path.join(self.csv_path, "ug_route_regina.csv"))
@@ -246,6 +246,8 @@ class offset_geometry():
     
     def load_point(self, path):
         route_line = wkt.loads(path)
+        if route_line.geom_type == 'MultiLineString':
+            return Point(route_line.geoms[0].coords[0])
         return Point(route_line.coords[0])
     
     def length_of_path(self, line):
@@ -254,8 +256,8 @@ class offset_geometry():
     
     def structure_offset(self, cable_name: list):
         for i in tqdm(cable_name, total=len(cable_name), desc="Checking cable in structure which was missing in Route"):
-            # if i == 'PRSR:APIPE:D7853982': 
-            #     pass
+            if i == 'COPER:COPER:C484005': 
+                pass
             cable_row = self.cable_df.loc[(self.cable_df['name'] == i)]
             if isinstance(cable_row['path'].iloc[0], float) and math.isnan(cable_row['path'].iloc[0]):continue
                 
@@ -265,15 +267,15 @@ class offset_geometry():
                                             'path': cable_row['path'].iloc[0], 
                                             'length': self.length_of_path(cable_row['path'].iloc[0])}) 
                 continue
-            struct_info = self.structure_data.loc[(self.structure_data['name'] == cable_row['from_structure_name'].iloc[0])]
-            if struct_info.empty: continue
-            struct_name = struct_info['name'].iloc[0]
-            match = self.load_point(str(struct_info['start_point'].iloc[0])).equals(cable_point)
-            # match = next(
-            #     (r[1].iloc[4] for r in self.structure_data.iterrows() if self.load_point(str(r[1].iloc[-1])).equals(cable_point)),
-            #     None
-            # )
-            if match:
+            # struct_info = self.structure_data.loc[(self.structure_data['name'] == cable_row['from_structure_name'].iloc[0])]
+            # if struct_info.empty: continue
+            # struct_name = struct_info['name'].iloc[0]
+            # match = self.load_point(str(struct_info['start_point'].iloc[0])).equals(cable_point)
+            struct_name = next(
+                (r[1].iloc[4] for r in self.structure_data.iterrows() if self.load_point(str(r[1].iloc[-1])).equals(cable_point)),
+                None
+            )
+            if struct_name:
                 self.strcuture_data[struct_name] = self.strcuture_data.get(struct_name, {"struct_name":struct_name,"side": "", "distance": 0,
                                                                                                 "count":0,
                                                                                                 'cable_name':[]})
@@ -300,7 +302,7 @@ class offset_geometry():
                     new_row = {"id": cable_row['cable_id'].iloc[0].split('/')[1],
                                             "offset_geom": off_set_geom,
                                             "name": cable_row['name'].iloc[0],
-                                            "route_name": '',
+                                            "route_name": struct_name,
                                             "path":cable_row['path'].iloc[0],
                                             "wkb_hex":wkt_line,
                                             "count": 1,
@@ -312,7 +314,7 @@ class offset_geometry():
                         self.coax_offset_df = pd.concat([self.coax_offset_df, pd.DataFrame([new_row])], ignore_index=True)
                     if "copper_cable" in cable_row['cable_id'].iloc[0]: 
                         self.copper_offset_df = pd.concat([self.copper_offset_df, pd.DataFrame([new_row])], ignore_index=True)
-                    if "copper_cable" in cable_row['cable_id'].iloc[0]: 
+                    if "fiber_cable" in cable_row['cable_id'].iloc[0]: 
                         self.fiber_offset_df = pd.concat([self.fiber_offset_df, pd.DataFrame([new_row])], ignore_index=True)
                 else:
                     self.offset_exception.append({'name':i,
@@ -359,11 +361,12 @@ class offset_geometry():
                 right_side_count = 0
                 left_side_count = 0
                 for index, row_data in filter_cable.iterrows():
-                    # if row_data['name'] == 'COPER:COPER:C483896':
+                    # if row_data['name'] == 'FIBER:FIBER::12950634':
                     #     pass
+                    route_name_ = self.route_data_df[self.route_data_df['id'] == row['root_housing']].iloc[0]['name']
                     if row_data['path'] == '':
                         self.cable_route_issue.append({"name": row_data['name'],
-                                                       "route_name": row['root_housing'],
+                                                       "route_name": route_name_,
                                                         "path":row_data['path'],
                                                         "Remarks": "Path is empty"}) 
                         continue
@@ -376,8 +379,8 @@ class offset_geometry():
                         other_start = Point(geom.coords[0])
                         coords = list(geom.coords)
                     if not start_point.equals(other_start):continue
-                    # if row_data['name'] == 'COPER:COPER:C528694':
-                    #     pass
+                    if row_data['name'] == 'COPPER:181689':
+                        pass
 
                     self.route_dict[row['root_housing']] = self.route_dict.get(row['root_housing'], 0)+1
                     side = 'left' if index_count%2 == 0 else 'right'
@@ -393,13 +396,13 @@ class offset_geometry():
                         off_set_geom = wkt.loads(wkt_line)
                         if not status:
                             self.cable_route_issue.append({"name": row_data['name'],
-                                                       "route_name": row['root_housing'],
+                                                       "route_name": route_name_,
                                                         "path":row_data['path'],
                                                         "Remarks": error})
                     except Exception as e:
                         # print(str(e))
                         self.cable_route_issue.append({"name": row_data['name'],
-                                                       "route_name": row['root_housing'],
+                                                       "route_name": route_name_,
                                                         "path":row_data['path'],
                                                         "Remarks": str(e)})
                     if off_set_geom: off_set_geom = off_set_geom.wkb_hex 
@@ -407,7 +410,7 @@ class offset_geometry():
                         fiber_cable_off_set_geometry.append({"id": row_data['cable_id'].split('/')[1],
                                                     "offset_geom": off_set_geom,
                                                     "name": row_data['name'],
-                                                    "route_name": row['root_housing'],
+                                                    "route_name": route_name_,
                                                     "path":row_data['path'],
                                                     "wkb_hex":wkt_line,
                                                     "count": len(filter_cable),
@@ -419,7 +422,7 @@ class offset_geometry():
                         copper_cable_off_set_geometry.append({"id": row_data['cable_id'].split('/')[1],
                                                     "offset_geom": off_set_geom,
                                                     "name": row_data['name'],
-                                                    "route_name": row['root_housing'],
+                                                    "route_name": route_name_,
                                                     "path":row_data['path'],
                                                     "wkb_hex":wkt_line,
                                                     "count": len(filter_cable),
@@ -431,7 +434,7 @@ class offset_geometry():
                         coax_cable_off_set_geometry.append({"id": row_data['cable_id'].split('/')[1],
                                                     "offset_geom": off_set_geom,
                                                     "name": row_data['name'],
-                                                    "route_name": row['root_housing'],
+                                                    "route_name": route_name_,
                                                     "path":row_data['path'],
                                                     "wkb_hex":wkt_line,
                                                     "count": len(filter_cable),
@@ -457,10 +460,11 @@ class offset_geometry():
             # not_generated_cable = pd.DataFrame([{"name": item, "remark": "offset not generated"} for item in diff])
             # not_generated_cable.to_csv(os.path.join(self.csv_path, "cable_not_generated.csv"), index=False)
             self.structure_offset(diff)
-            cable_not_generated = [x for x in list(diff) if x not in self.structure_cable]
-            not_generated_cable = pd.DataFrame([{"name": item, "remark": "offset not generated"} for item in cable_not_generated])
-            not_generated_cable.to_csv(os.path.join(self.csv_path, "cable_not_generated.csv"), index=False)
+            # cable_not_generated = [x for x in list(diff) if x not in self.structure_cable]
+            # not_generated_cable = pd.DataFrame([{"name": item, "remark": "offset not generated"} for item in cable_not_generated])
+            # not_generated_cable.to_csv(os.path.join(self.csv_path, "cable_not_generated.csv"), index=False)
 
+        self.df_combined = pd.concat([self.fiber_offset_df, self.copper_offset_df, self.coax_offset_df], ignore_index=False)
         if not self.df_combined.empty: self.df_combined.to_csv(os.path.join(self.csv_path, "ref_data.csv"), index=False)
         
         if not self.fiber_offset_df.empty: self.fiber_offset_df = self.fiber_offset_df.dropna(subset=["offset_geom"]).reset_index(drop=True)
